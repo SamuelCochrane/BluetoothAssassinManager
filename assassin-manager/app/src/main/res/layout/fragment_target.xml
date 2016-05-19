@@ -1,0 +1,42 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="edu.uw.samueldc.assassin_manager.TargetFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+
+    <TextView
+        android:id="@+id/targetSpottedText"
+        style="@style/targetText"
+        android:text="@string/target_spotted_text_not_in_range" />
+    <TextView
+        android:id="@+id/targetSpottedNameText"
+        style="@style/targetText"
+        android:text="Jon Doe" />
+
+        <TextView
+            android:id="@+id/targetSpottedDistance"
+            style="@style/targetText"
+            android:text="50m" />
+
+
+            <Button
+                android:id="@+id/killButton"
+                style="@style/targetText"
+
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:text="@string/kill_button" />
+            <!--<Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />-->
+
+
+
+    </LinearLayout>
+</FrameLayout>

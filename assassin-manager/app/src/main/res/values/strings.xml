@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">assassin_manager</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="kill_button">Kill</string>
+    <string name="target_spotted_text_not_in_range">Target not in range</string>
+    <string name="target_spotted_text_in_range">Target in range</string>
 </resources>
