@@ -9,5 +9,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="edu.uw.samueldc.assassin_manager.MainActivity">
 
+    <!--TODO: Add tab nav-->
 
 </RelativeLayout>

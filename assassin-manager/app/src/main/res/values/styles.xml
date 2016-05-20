@@ -8,12 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="appText">
+    <style name="mainAppText">
         <item name="android:fontFamily">sans-serif-condensed</item>
-        <item name="android:textSize">90dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
     </style>
 
-    <style name="targetText" parent="appText">
+    <style name="targetText" parent="mainAppText">
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textSize">14sp</item>
         <item name="android:layout_marginTop">40dp</item>
