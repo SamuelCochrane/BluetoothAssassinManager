@@ -15,7 +15,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".EnterNameActivity"></activity>
+        <activity android:name=".EnterActivity"></activity>
     </application>
 
 </manifest>
