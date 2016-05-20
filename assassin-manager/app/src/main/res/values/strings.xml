@@ -2,8 +2,24 @@
     <string name="app_name">assassin_manager</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!--Enter Screen-->
+    <string name="hint_name">Your Name...</string>
+    <string name="hint_room">E.G. XYZ33</string>
+    <string name="enter_game_description">
+        Enter a name for yourself and the room you and the others will be playing in
+        (you should all enter the same room name, and try to make it unique!)
+    </string>
+
+
+    <!--Me Screen-->
+    <string name="my_name">Human #1</string>
+    <string name="my_kills">0</string>
+    <string name="my_status">Not Dead</string>
+
+    <!--Target Screen-->
     <string name="kill_button">Kill</string>
+    <string name="target_name">Jon Doe</string>
+    <string name="target_distance">50m</string>
     <string name="target_spotted_text_not_in_range">Target not in range</string>
     <string name="target_spotted_text_in_range">Target in range</string>
 </resources>

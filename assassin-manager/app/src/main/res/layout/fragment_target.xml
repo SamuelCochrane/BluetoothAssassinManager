@@ -17,24 +17,18 @@
     <TextView
         android:id="@+id/targetSpottedNameText"
         style="@style/targetText"
-        android:text="Jon Doe" />
+        android:text="@string/target_name" />
+    <TextView
+        android:id="@+id/targetSpottedDistance"
+        style="@style/targetText"
+        android:text="@string/target_distance" />
 
-        <TextView
-            android:id="@+id/targetSpottedDistance"
-            style="@style/targetText"
-            android:text="50m" />
-
-
-            <Button
-                android:id="@+id/killButton"
-                style="@style/targetText"
-
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:text="@string/kill_button" />
-            <!--<Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />-->
+    <Button
+        android:id="@+id/killButton"
+        style="@style/targetText"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:text="@string/kill_button" />
 
 
 
