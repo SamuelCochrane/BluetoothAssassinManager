@@ -1,9 +1,9 @@
 package edu.uw.samueldc.assassin_manager;
 
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 
-public class EnterRoomActivity extends AppCompatActivity {
+public class EnterActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
