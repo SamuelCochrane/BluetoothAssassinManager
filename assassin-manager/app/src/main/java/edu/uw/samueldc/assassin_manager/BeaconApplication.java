@@ -22,17 +22,22 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
     @Override
     public void onCreate() {
         super.onCreate();
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
         Log.d(TAG, "App started up");
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
         // wake up the app when any eacon is seen
         Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
         regionBootstrap = new RegionBootstrap(this, region);
+
+        // reduce bluetooth power consumption by around 60%
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
     }
 
     @Override
     public void didEnterRegion(Region region) {
+        // Launch Main activity every time a beacon enters the region.
+        // Might want to pass extras to Main, which will open the correct
+        // target fragment if given the extras are found.
         Log.d(TAG, "Got a didEnterRegion call");
 
         Intent intent = new Intent(this, MainActivity.class);
