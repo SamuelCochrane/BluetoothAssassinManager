@@ -6,6 +6,7 @@ import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 
@@ -16,9 +17,12 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
     private static final String TAG = "BeaconApplication";
     private RegionBootstrap regionBootstrap;
 
+    private BackgroundPowerSaver backgroundPowerSaver;
+
     @Override
     public void onCreate() {
         super.onCreate();
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
         Log.d(TAG, "App started up");
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
