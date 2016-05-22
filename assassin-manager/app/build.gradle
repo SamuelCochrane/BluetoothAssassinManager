@@ -10,6 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -29,4 +30,6 @@ dependencies {
     compile 'org.altbeacon:android-beacon-library:2.+'
     compile 'com.android.support:support-v4:23.4.0'
     compile 'com.android.support:design:23.4.0'
+    compile 'com.firebase:firebase-client-android:2.5.2+'
+    compile 'com.google.android.gms:play-services:9.0.+'
 }

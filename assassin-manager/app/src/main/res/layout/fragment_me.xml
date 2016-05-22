@@ -8,7 +8,9 @@
     <TextView
         android:id="@+id/targetSpottedText"
         style="@style/mainAppText"
+
         android:text="me"
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
