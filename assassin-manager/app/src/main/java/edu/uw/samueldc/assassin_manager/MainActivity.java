@@ -1,13 +1,12 @@
 package edu.uw.samueldc.assassin_manager;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,20 +16,50 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+
 import java.util.ArrayList;
 
 public class MainActivity extends FragmentActivity {
     static final int NUM_SCREEN = 4;
 
+    private static final String TAG = "MainActivity";
+
     PageAdapter pageAdapter;
 
     ViewPager viewPager;
+
+    Firebase fireBaseRef;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Firebase.setAndroidContext(this);
         setContentView(R.layout.activity_main);
+
+        // Passed bundle info to use for the database
+        String username = getIntent().getExtras().getString("username");
+        String roomname = getIntent().getExtras().getString("room");
+
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
+
+
+        fireBaseRef.child("users/").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.v(TAG, "users: " + dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+        });
+
 
         pageAdapter = new PageAdapter(getSupportFragmentManager());
 

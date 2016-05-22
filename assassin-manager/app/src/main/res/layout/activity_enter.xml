@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="12dp">
+    android:id="@+id/enterScreen">
 
-    <TextView
-        style="@style/mainAppText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/enter_game_description"/>
-
-
-    <EditText
-        android:id="@+id/enterName"
-        style="@style/mainAppText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/hint_name" />
+    <ImageView
+        android:id="@+id/loginIcon"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="50dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/login_icon"/>
 
     <EditText
-        android:id="@+id/enterRoom"
-        style="@style/mainAppText"
-        android:layout_width="match_parent"
+        android:id="@+id/etPlayerName"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_room" />
-
+        android:layout_marginTop="50dp"
+        android:hint="Enter player name..."
+        android:layout_gravity="center_horizontal"
+        />
+    <EditText
+        android:id="@+id/etRoomName"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Enter room name..."
+        android:layout_gravity="center_horizontal"
+    />
     <Button
-        android:id="@+id/enterButton"
-        android:text="Enter"
-        style="@style/mainAppText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-
+        android:id="@+id/btnEnter"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Enter Game"
+        android:background="#324398"
+        android:textColor="#ffffff" />
 </LinearLayout>

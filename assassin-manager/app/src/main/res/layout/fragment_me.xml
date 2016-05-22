@@ -5,7 +5,14 @@
     tools:context="edu.uw.samueldc.assassin_manager.MeFragment">
 
     <!-- TODO: Update blank fragment layout -->
+<<<<<<< HEAD
     <LinearLayout
+=======
+    <TextView
+        android:id="@+id/targetSpottedText"
+        style="@style/mainAppText"
+        android:text=""
+>>>>>>> origin/master
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
