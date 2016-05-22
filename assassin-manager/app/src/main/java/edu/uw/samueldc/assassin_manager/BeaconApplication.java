@@ -25,7 +25,7 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
         Log.d(TAG, "App started up");
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
-        // wake up the app when any eacon is seen
+        // wake up the app when any beacon is seen
         Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
         regionBootstrap = new RegionBootstrap(this, region);
 

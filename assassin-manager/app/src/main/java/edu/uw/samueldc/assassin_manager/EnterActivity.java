@@ -103,6 +103,7 @@ public class EnterActivity extends AppCompatActivity {
                     // start MainActivity
                     // put the strings into bundle to be stored in the database
                     String playerName = etPlayerName.getText().toString();
+                    Log.d(TAG, "player name: " + playerName);
                     String roomName = etRoomName.getText().toString();
 
                     Intent intent = new Intent(EnterActivity.this, MainActivity.class);
