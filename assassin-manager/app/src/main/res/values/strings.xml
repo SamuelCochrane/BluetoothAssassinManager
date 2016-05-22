@@ -7,4 +7,6 @@
     <string name="target_spotted_text_not_in_range">Target not in range</string>
     <string name="target_spotted_text_in_range">Target in range</string>
     <string name="google_maps_key">AIzaSyDI8IvI9d7A7MXr22_6N4szGr1IMaEJA0s</string>
+    <string name="target_name">Loading Target Name...</string>
+    <string name="target_distance">Loading Target Distance</string>
 </resources>
