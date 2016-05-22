@@ -1,5 +1,6 @@
 package edu.uw.samueldc.assassin_manager;
 
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -8,8 +9,10 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -19,7 +22,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends AppCompatActivity {
     static final int NUM_SCREEN = 4;
 
     PageAdapter pageAdapter;
@@ -32,10 +35,41 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // deal with toolbar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Assassin");
+        setSupportActionBar(toolbar);
+
+        // add tab layout
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Lobby"));
+        tabLayout.addTab(tabLayout.newTab().setText("Map"));
+        tabLayout.addTab(tabLayout.newTab().setText("Me"));
+        tabLayout.addTab(tabLayout.newTab().setText("Target"));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+
         pageAdapter = new PageAdapter(getSupportFragmentManager());
 
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(pageAdapter);
+
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
 
         // Watch for button clicks.
         Button button = (Button)findViewById(R.id.goto_first);
@@ -52,6 +86,15 @@ public class MainActivity extends FragmentActivity {
         });
     }
 
+    // Menu icons are inflated just as they were with actionbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
     public static class PageAdapter extends FragmentPagerAdapter {
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -64,7 +107,18 @@ public class MainActivity extends FragmentActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return ArrayListFragment.newInstance(position);
+            switch (position) {
+                case 0:
+                    return new LobbyFragment();
+                case 1:
+                    return new MapFragment();
+                case 2:
+                    return new MeFragment();
+                case 3:
+                    return new TargetFragment();
+                default:
+                    return null;
+            }
         }
     }
 
