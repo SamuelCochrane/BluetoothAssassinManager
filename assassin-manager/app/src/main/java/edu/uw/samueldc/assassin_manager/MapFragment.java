@@ -30,6 +30,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,11 +43,23 @@ public class MapFragment extends Fragment {
     static final LatLng player1 = new LatLng(53.558, 9.927);
     static final LatLng player2 = new LatLng(53.551, 9.993);
     private GoogleMap map;
+    private static View view;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_map, container, false);
+        if (view != null) {
+            ViewGroup parent = (ViewGroup) view.getParent();
+            if (parent != null)
+                parent.removeView(view);
+        }
+        try {
+            view = inflater.inflate(R.layout.fragment_map, container, false);
+        } catch (InflateException e) {
+        /* map is already there, just return view as it is */
+        }
+
+//        View v = inflater.inflate(R.layout.fragment_map, container, false);
 
         map = ((SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map)).getMap();
@@ -64,7 +77,7 @@ public class MapFragment extends Fragment {
         map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
 
-        return v;
+        return view;
     }
 
 //    @Override
