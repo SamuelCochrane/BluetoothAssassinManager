@@ -5,11 +5,33 @@
     tools:context="edu.uw.samueldc.assassin_manager.MeFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/targetSpottedText"
-        style="@style/mainAppText"
-        android:text="@string/"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/myName"
+            style="@style/targetText"
+            android:text="@string/my_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/myScore"
+            style="@style/targetText"
+            android:text="@string/my_kills"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
+            android:id="@+id/myStatus"
+            style="@style/targetText"
+            android:text="@string/my_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 </FrameLayout>
