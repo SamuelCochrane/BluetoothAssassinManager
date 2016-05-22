@@ -48,9 +48,6 @@ public class EnterActivity extends AppCompatActivity {
         btnEnter.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                // if play name already exists???
-                // make a query; not finished here
-
                 final String room = etRoomName.getText().toString();
                 final String username = etPlayerName.getText().toString();
 
@@ -83,6 +80,7 @@ public class EnterActivity extends AppCompatActivity {
 
                     dialog.setCancelable(false);
                     dialog.setIcon(R.drawable.login_icon);
+                    dialog.setTitle("Name Already in Use!");
                     dialog.setMessage("Player Name Already Exists. Please Find a New Name.");
                     dialog.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
