@@ -46,6 +46,8 @@ public class MapFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_map, null, false);
+        
+        MapsInitializer.initialize(getContext());
 
         map = ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map))
                 .getMap();
