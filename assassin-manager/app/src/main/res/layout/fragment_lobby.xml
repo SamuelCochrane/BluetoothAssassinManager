@@ -7,22 +7,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Status"/>
+            style="@style/lobbyText"
+            android:text="@string/lobby_tag_status"/>
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Name"/>
+            style="@style/lobbyText"
+            android:text="@string/lobby_tag_name"/>
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kills"/>
+            style="@style/lobbyText"
+            android:text="@string/lobby_tag_kills"/>
     </LinearLayout>
+
     <ListView
     android:id="@+id/lobbyList"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="5dp" />
+    android:layout_marginTop="50dp" />
 
 </FrameLayout>

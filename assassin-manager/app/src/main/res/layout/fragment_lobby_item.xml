@@ -4,24 +4,22 @@
     android:layout_height="match_parent"
     android:paddingTop="5dp"
     android:paddingLeft="5dp"
+    android:paddingRight="5dp"
     android:paddingBottom="5dp">
 
     <ImageView
         android:id="@+id/itemIcon"
         android:src="@drawable/ic_default"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/itemTitle"
-            style="@style/mainAppText"
-            android:text="(loading player name...)"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        style="@style/lobbyText" />
+    <TextView
+        android:id="@+id/itemTitle"
+        style="@style/lobbyText"
+        android:text="@string/lobby_item_loading_name" />
 
-        <TextView
-            android:id="@+id/itemScore"
-            style="@style/mainAppText"
-            android:text="(loading kills...)"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/itemScore"
+        style="@style/lobbyText"
+        android:text="@string/lobby_item_loading_kills" />
+
+
 </LinearLayout>
