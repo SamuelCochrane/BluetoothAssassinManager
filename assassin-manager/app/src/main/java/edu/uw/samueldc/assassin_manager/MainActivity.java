@@ -1,6 +1,7 @@
 package edu.uw.samueldc.assassin_manager;
 
 
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 
 import android.os.Bundle;
@@ -29,9 +30,15 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.altbeacon.beacon.startup.RegionBootstrap;
+
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BootstrapNotifier {
     static final int NUM_SCREEN = 4;
 
     private static final String TAG = "MainActivity";
@@ -42,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
 
     Firebase fireBaseRef;
 
+    private String playerName;
+    private String roomName;
+
+    private RegionBootstrap regionBootstrap;
+    private BackgroundPowerSaver backgroundPowerSaver;
+    private boolean haveDetectedBeaconsSinceBoot = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         Firebase.setAndroidContext(this);
         setContentView(R.layout.activity_main);
 
-        // deal with toolbar
+        // ============= deal with toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Assassin");
         setSupportActionBar(toolbar);
@@ -61,25 +74,6 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addTab(tabLayout.newTab().setText("Me"));
         tabLayout.addTab(tabLayout.newTab().setText("Target"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-
-        // Passed bundle info to use for the database
-        String username = getIntent().getExtras().getString("username");
-        String roomname = getIntent().getExtras().getString("room");
-
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
-
-
-        fireBaseRef.child("users/").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.v(TAG, "users: " + dataSnapshot.getValue());
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.e(TAG, "Error when accessing DB: " + firebaseError);
-            }
-        });
 
         pageAdapter = new PageAdapter(getSupportFragmentManager());
 
@@ -104,6 +98,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // ============ db stuff
+        // Passed bundle info to use for the database
+        playerName = getIntent().getExtras().getString("playerName");
+        roomName = getIntent().getExtras().getString("roomName");
+
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
+
+        fireBaseRef.child("users/").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.v(TAG, "users: " + dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+        });
+
+
+        // ============= beacon stuff
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+
+        // wake up the app when any beacon is seen
+        Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
+        regionBootstrap = new RegionBootstrap(this, region);
+
+        // reduce bluetooth power consumption by around 60%
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
+
+        BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+        ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createBasicSimulatedBeacons();
+
         // Watch for button clicks.
         Button button = (Button)findViewById(R.id.goto_first);
         button.setOnClickListener(new View.OnClickListener() {
@@ -125,6 +152,42 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    @Override
+    public void didEnterRegion(Region region) {
+        Log.d(TAG, "did enter region.");
+        if (!haveDetectedBeaconsSinceBoot) {
+            Log.d(TAG, "auto launching MainActivity");
+
+            // The very first time since boot that we detect an beacon, we launch the
+            // MainActivity
+            Intent intent = new Intent(this, MainActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("playerName", playerName);
+            bundle.putString("roomName", roomName);
+            intent.putExtras(bundle);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            // Important:  make sure to add android:launchMode="singleInstance" in the manifest
+            // to keep multiple copies of this activity from getting created if the user has
+            // already manually launched the app.
+            this.startActivity(intent);
+            haveDetectedBeaconsSinceBoot = true;
+        } else {
+            // else, change to target view
+            Log.d(TAG, "change to target view");
+            viewPager.setCurrentItem(3);
+        }
+    }
+
+    @Override
+    public void didExitRegion(Region region) {
+
+    }
+
+    @Override
+    public void didDetermineStateForRegion(int i, Region region) {
+
     }
 
 
