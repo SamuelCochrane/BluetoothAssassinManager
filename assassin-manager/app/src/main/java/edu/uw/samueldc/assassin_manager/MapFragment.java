@@ -27,8 +27,8 @@ public class MapFragment extends Fragment {
 
     private static String myRoom;
 
-    public static LobbyFragment newInstance(String room) {
-        LobbyFragment fragment = new LobbyFragment();
+    public static MapFragment newInstance(String room) {
+        MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
         args.putString("room", room);
         fragment.setArguments(args);
