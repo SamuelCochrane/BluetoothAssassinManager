@@ -60,15 +60,16 @@ public class MapFragment extends Fragment {
 
     public void getData() {
         // query to database to get all users in the room
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
 
-        fireBaseRef.child(myRoom).addValueEventListener(new ValueEventListener() {
+        fireBaseRef.child("rooms/"+myRoom).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    Log.v(TAG,child.getValue().toString());
                             arrayList.add(child);
                 }
-                    Log.v(TAG, arrayList.get(0).toString());
+         //           Log.v(TAG, arrayList.get(0).toString());
          //       for (Object item : arrayList) {
 
 
