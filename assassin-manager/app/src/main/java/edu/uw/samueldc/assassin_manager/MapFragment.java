@@ -11,6 +11,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -55,19 +56,19 @@ public class MapFragment extends Fragment {
 
         Marker me = map.addMarker(new MarkerOptions()
                 .position(ME)
-                .title("Me"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_me)));
+                .title("Me")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_me)));
         Marker player1 = map.addMarker(new MarkerOptions()
                 .position(PLAYER1)
-                .title("Player 1"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_dead)));
+                .title("Player 1")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_dead)));
         Marker player2 = map.addMarker(new MarkerOptions()
                 .position(PLAYER2)
-                .title("Player 2"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_alive)));
+                .title("Player 2")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_alive)));
 
         // Move the camera instantly to myself with a zoom of 20.
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(ME, 100));
