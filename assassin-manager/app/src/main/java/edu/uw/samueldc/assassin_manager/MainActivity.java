@@ -1,7 +1,15 @@
 package edu.uw.samueldc.assassin_manager;
 
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.support.design.widget.TabLayout;
+
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -26,6 +34,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
@@ -33,8 +42,9 @@ import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
-public class MainActivity extends AppCompatActivity implements BootstrapNotifier {
+public class MainActivity extends AppCompatActivity implements ServiceConnection {
     static final int NUM_SCREEN = 4;
 
     private static final String TAG = "MainActivity";
@@ -48,9 +58,23 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
     private String playerName;
     private static String roomName;
 
-    private RegionBootstrap regionBootstrap;
-    private BackgroundPowerSaver backgroundPowerSaver;
-    private boolean haveDetectedBeaconsSinceBoot = false;
+    private boolean bound;
+    private Collection<Beacon> beacons;
+
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String str = intent.getAction();
+            // if receive beacons, try to get extras
+            if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
+                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
+                Log.d(TAG, beacon.toString());
+            } else if (str.equals(BeaconApplication.RANGING_DONE)) {
+                Log.d(TAG, "ENTER A NEW BEACON REGION!");
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,8 +120,12 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
 
         // ============ db stuff
         // Passed bundle info to use for the database
-        playerName = getIntent().getExtras().getString("playerName");
-        roomName = getIntent().getExtras().getString("roomName");
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null && playerName == null && roomName == null) {
+            playerName = bundle.getString("playerName");
+            roomName = bundle.getString("roomName");
+        }
+
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
 
@@ -115,17 +143,14 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
 
 
         // ============= beacon stuff
-        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
-
-        // wake up the app when any beacon is seen
-        Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
-
-        // reduce bluetooth power consumption by around 60%
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
-
-        BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
-        ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createBasicSimulatedBeacons();
+        // start the beacon service in the backgorund thread
+        Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
+        startService(intent);
+        // and register for broadcast receiver from beacon service
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BeaconApplication.BROADCAST_BEACON);
+        filter.addAction(BeaconApplication.RANGING_DONE);
+        registerReceiver(receiver, filter);
 
         // Watch for button clicks.
         Button button = (Button)findViewById(R.id.goto_first);
@@ -142,6 +167,33 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
         });
     }
 
+    @Override
+    protected void onStart() {
+        startService(new Intent(MainActivity.this, BeaconApplication.class));
+
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        stopService(new Intent(MainActivity.this, BeaconApplication.class));
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.v(TAG, "Activity destroyed");
+        try{
+            if(receiver != null)
+                unregisterReceiver(receiver);
+        }catch(Exception e)
+        {
+
+        }
+        super.onDestroy();
+    }
+
     // Menu icons are inflated just as they were with actionbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -151,38 +203,12 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
     }
 
     @Override
-    public void didEnterRegion(Region region) {
-        Log.d(TAG, "did enter region.");
-        if (!haveDetectedBeaconsSinceBoot) {
-            Log.d(TAG, "auto launching MainActivity");
-
-            // The very first time since boot that we detect an beacon, we launch the
-            // MainActivity
-            Intent intent = new Intent(this, MainActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putString("playerName", playerName);
-            bundle.putString("roomName", roomName);
-            intent.putExtras(bundle);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            // Important:  make sure to add android:launchMode="singleInstance" in the manifest
-            // to keep multiple copies of this activity from getting created if the user has
-            // already manually launched the app.
-            this.startActivity(intent);
-            haveDetectedBeaconsSinceBoot = true;
-        } else {
-            // else, change to target view
-            Log.d(TAG, "change to target view");
-            viewPager.setCurrentItem(3);
-        }
-    }
-
-    @Override
-    public void didExitRegion(Region region) {
+    public void onServiceConnected(ComponentName name, IBinder service) {
 
     }
 
     @Override
-    public void didDetermineStateForRegion(int i, Region region) {
+    public void onServiceDisconnected(ComponentName name) {
 
     }
 
@@ -211,63 +237,6 @@ public class MainActivity extends AppCompatActivity implements BootstrapNotifier
                 default:
                     return null;
             }
-        }
-    }
-
-    // test fragment -- used until fragment settled
-    public static class ArrayListFragment extends ListFragment {
-        int mNum;
-
-        /**
-         * Create a new instance of CountingFragment, providing "num"
-         * as an argument.
-         */
-        static ArrayListFragment newInstance(int num) {
-            ArrayListFragment f = new ArrayListFragment();
-
-            // Supply num input as an argument.
-            Bundle args = new Bundle();
-            args.putInt("num", num);
-            f.setArguments(args);
-
-            return f;
-        }
-
-        /**
-         * When creating, retrieve this instance's number from its arguments.
-         */
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mNum = getArguments() != null ? getArguments().getInt("num") : 1;
-        }
-
-        /**
-         * The Fragment's UI is just a simple text view showing its
-         * instance number.
-         */
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View v = inflater.inflate(R.layout.fragment_pager_list, container, false);
-            View tv = v.findViewById(R.id.text);
-            ((TextView)tv).setText("Fragment #" + mNum);
-            return v;
-        }
-
-        @Override
-        public void onActivityCreated(Bundle savedInstanceState) {
-            super.onActivityCreated(savedInstanceState);
-            ArrayList<String> alist = new ArrayList<>();
-            alist.add("sdfasd");
-            alist.add("fafadsfad");
-            setListAdapter(new ArrayAdapter<String>(getActivity(),
-                    android.R.layout.simple_list_item_1, alist));
-        }
-
-        @Override
-        public void onListItemClick(ListView l, View v, int position, long id) {
-            Log.i("FragmentList", "Item clicked: " + id);
         }
     }
 }
