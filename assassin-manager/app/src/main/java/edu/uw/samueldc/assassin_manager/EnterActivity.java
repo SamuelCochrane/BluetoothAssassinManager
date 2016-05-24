@@ -201,13 +201,14 @@ public class EnterActivity extends AppCompatActivity {
                     Log.d(TAG, "player name: " + playerName);
                     String roomName = etRoomName.getText().toString();
 
-                    Intent intent = new Intent(EnterActivity.this, MainActivity.class);
                     Bundle bundle = new Bundle();
+                    Intent intent = new Intent(EnterActivity.this, MainActivity.class);
                     bundle.putString("playerName", playerName);
                     bundle.putString("roomName", roomName);
                     intent.putExtras(bundle);
 
                     startActivity(intent);
+
                 }
             }
 

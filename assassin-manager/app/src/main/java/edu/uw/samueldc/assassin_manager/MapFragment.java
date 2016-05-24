@@ -53,7 +53,7 @@ public class MapFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             myRoom = getArguments().getString("room");
-            Log.v(TAG,myRoom);
+            Log.v(TAG, myRoom);
         }
     }
 
@@ -65,14 +65,14 @@ public class MapFragment extends Fragment {
         fireBaseRef.child(myRoom).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                            arrayList.add(child);
+                    arrayList.add(child.child("users").getChildren());
                 }
-                    Log.v(TAG, arrayList.get(0).toString());
-         //       for (Object item : arrayList) {
 
+                Log.v(TAG, arrayList.get(0).toString());
 
-                }
+            }
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {

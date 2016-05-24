@@ -1,33 +1,23 @@
 package edu.uw.samueldc.assassin_manager;
 
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.support.design.widget.TabLayout;
-
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -35,13 +25,7 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
 import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
-import org.altbeacon.beacon.startup.BootstrapNotifier;
-import org.altbeacon.beacon.startup.RegionBootstrap;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
@@ -136,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        filter.addAction(BeaconApplication.BROADCAST_BEACON);
 //        filter.addAction(BeaconApplication.RANGING_DONE);
 //        registerReceiver(receiver, filter);
+
+
         receiver = new BeaconReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BeaconApplication.BROADCAST_BEACON);
