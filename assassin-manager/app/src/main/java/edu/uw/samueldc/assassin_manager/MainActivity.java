@@ -257,4 +257,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         }
     }
+
+    public String getPlayerName() {
+        return playerName;
+    }
 }
