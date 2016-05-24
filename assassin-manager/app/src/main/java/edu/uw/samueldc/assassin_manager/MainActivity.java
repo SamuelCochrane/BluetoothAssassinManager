@@ -61,22 +61,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private boolean bound;
     private Collection<Beacon> beacons;
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String str = intent.getAction();
-            // if receive beacons, try to get extras
-            if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
-//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
-                // a list of beacons
-                ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
-                Log.d(TAG, beacons.get(0).toString());
-            } else if (str.equals(BeaconApplication.RANGING_DONE)) {
-                Log.d(TAG, "ENTER A NEW BEACON REGION!");
-            }
-        }
-    };
+    private BeaconReceiver receiver = null;
+    private boolean isRegistered = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,11 +132,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         // ============= beacon stuff
         // and register for broadcast receiver from beacon service
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(BeaconApplication.BROADCAST_BEACON);
+//        filter.addAction(BeaconApplication.RANGING_DONE);
+//        registerReceiver(receiver, filter);
+        receiver = new BeaconReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BeaconApplication.BROADCAST_BEACON);
         filter.addAction(BeaconApplication.RANGING_DONE);
         registerReceiver(receiver, filter);
-
+        isRegistered = true;
         // start the beacon service in the backgorund thread
         Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
         startService(intent);
@@ -169,6 +160,29 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 viewPager.setCurrentItem(NUM_SCREEN-1);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!isRegistered) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BeaconApplication.BROADCAST_BEACON);
+            filter.addAction(BeaconApplication.RANGING_DONE);
+            registerReceiver(receiver, filter);
+            isRegistered = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+//        if (isRegistered) {
+//            unregisterReceiver(receiver);
+//            isRegistered = false;
+//        }
     }
 
     @Override
