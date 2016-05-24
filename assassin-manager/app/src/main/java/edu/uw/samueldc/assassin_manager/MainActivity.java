@@ -68,8 +68,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             String str = intent.getAction();
             // if receive beacons, try to get extras
             if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
-                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
-                Log.d(TAG, beacon.toString());
+//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
+                // a list of beacons
+                ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
+                Log.d(TAG, beacons.get(0).toString());
             } else if (str.equals(BeaconApplication.RANGING_DONE)) {
                 Log.d(TAG, "ENTER A NEW BEACON REGION!");
             }
@@ -143,14 +145,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
 
         // ============= beacon stuff
-        // start the beacon service in the backgorund thread
-        Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
-        startService(intent);
         // and register for broadcast receiver from beacon service
         IntentFilter filter = new IntentFilter();
         filter.addAction(BeaconApplication.BROADCAST_BEACON);
         filter.addAction(BeaconApplication.RANGING_DONE);
         registerReceiver(receiver, filter);
+
+        // start the beacon service in the backgorund thread
+        Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
+        startService(intent);
+
 
         // Watch for button clicks.
         Button button = (Button)findViewById(R.id.goto_first);
@@ -169,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     @Override
     protected void onStart() {
-        startService(new Intent(MainActivity.this, BeaconApplication.class));
+//        startService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStart();
     }
