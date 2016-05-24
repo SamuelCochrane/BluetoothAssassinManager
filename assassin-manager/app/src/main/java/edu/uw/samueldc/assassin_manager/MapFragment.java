@@ -60,7 +60,7 @@ public class MapFragment extends Fragment {
 
     public void getData() {
         // query to database to get all users in the room
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
 
         fireBaseRef.child(myRoom).addValueEventListener(new ValueEventListener() {
             @Override
