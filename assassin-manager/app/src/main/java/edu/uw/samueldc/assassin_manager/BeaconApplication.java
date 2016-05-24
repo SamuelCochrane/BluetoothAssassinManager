@@ -1,29 +1,114 @@
 package edu.uw.samueldc.assassin_manager;
 
+import android.app.ActivityManager;
 import android.app.Application;
+import android.app.IntentService;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.app.TaskStackBuilder;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Created by OwenFlannigan on 5/21/16.
  */
-public class BeaconApplication extends Application implements BootstrapNotifier {
+public class BeaconApplication extends IntentService implements BootstrapNotifier, BeaconConsumer {
     private static final String TAG = "BeaconApplication";
     private RegionBootstrap regionBootstrap;
-
+    private boolean haveDetectedBeaconsSinceBoot = false;
     private BackgroundPowerSaver backgroundPowerSaver;
+
+    private BeaconManager beaconManager;
+
+    // pass msg from back and forth
+    private Handler handler;
+
+    public static final String RANGING_DONE = "RANGING_DONE";
+    public static final String BROADCAST_BEACON = "BROADCAST_BEACON";
+
+    private Context context;
+
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     */
+    public BeaconApplication() {
+        super("CountingService");
+
+        handler = new Handler();
+    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "App started up");
-        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+
+        this.context = this;
+//        Log.d(TAG, "App started upalsdkfja;sldkfjal;sdfjl;asdjfa;lsdfkjfl;askdj");
+//        beaconManager = BeaconManager.getInstanceForApplication(this);
+//
+//        beaconManager.bind(this);
+//
+//        // wake up the app when any beacon is seen
+//        Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
+//        regionBootstrap = new RegionBootstrap(this, region);
+//
+//        // reduce bluetooth power consumption by around 60%
+//        backgroundPowerSaver = new BackgroundPowerSaver(this);
+//
+//        BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+//        ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createBasicSimulatedBeacons();
+    }
+
+    @Override
+    // this method is automatically proceeded by the android and will call onHanldeIntent
+    // when received intent service start command
+    // when clip multiple services, it will queue all services
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.v(TAG, "Intent received!");
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        beaconManager.unbind(this);
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        Log.d(TAG, "App started upalsdkfja;sldkfjal;sdfjl;asdjfa;lsdfkjfl;askdj");
+        beaconManager = BeaconManager.getInstanceForApplication(this);
+
+        beaconManager.bind(this);
 
         // wake up the app when any beacon is seen
         Region region = new Region("edu.uw.samueldc.assassin_manager.MainActivity", null, null, null);
@@ -31,6 +116,37 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
 
         // reduce bluetooth power consumption by around 60%
         backgroundPowerSaver = new BackgroundPowerSaver(this);
+
+        BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+        ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createBasicSimulatedBeacons();
+    }
+
+
+    @Override
+    public void onBeaconServiceConnect() {
+        beaconManager.setRangeNotifier(new RangeNotifier() {
+            @Override
+            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                Log.d(TAG, "RECEIVE BEACON MESSAGE!!");
+                if (beacons.size() > 0) {
+                    // send collections of beacons as broadcast message to other activities
+                    Intent braodcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
+                    Bundle beaconBundle = new Bundle();
+                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
+                    braodcastBeaconsIntent.putExtras(beaconBundle);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            braodcastBeaconsIntent);
+                    //EditText editText = (EditText)RangingActivity.this.findViewById(R.id.rangingText);
+//                    Beacon firstBeacon = beacons.iterator().next();
+//                    logToDisplay("The first beacon " + firstBeacon.toString() + " is about " + firstBeacon.getDistance() + " meters away.");
+                }
+            }
+
+        });
+
+        try {
+            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+        } catch (RemoteException e) {   }
     }
 
     @Override
@@ -40,10 +156,50 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
         // target fragment if given the extras are found.
         Log.d(TAG, "Got a didEnterRegion call");
 
-        Intent intent = new Intent(this, MainActivity.class);
+//        Intent intent = new Intent(this, MainActivity.class);
 
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        this.startActivity(intent);
+        // send broadcast msg if enter a region
+        Intent rangingDoneIntent = new Intent(BeaconApplication.RANGING_DONE);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(
+                rangingDoneIntent);
+
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        this.startActivity(intent);
+
+        // check current activity name
+        ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
+        Log.d("topActivity", "CURRENT Activity ::" + taskInfo.get(0).topActivity.getClassName());
+        ComponentName componentInfo = taskInfo.get(0).topActivity;
+
+
+        if (!haveDetectedBeaconsSinceBoot) {
+
+            Log.d(TAG, "auto launching MainActivity");
+
+            // TODO: there is a bug in this place!!!
+            // The very first time since boot that we detect an beacon, we launch the
+            // MainActivity
+//            Intent intent = new Intent(this, MainActivity.class);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            this.startActivity(intent);
+
+            haveDetectedBeaconsSinceBoot = true;
+        } else {
+
+            if (taskInfo.get(0).topActivity.getClassName().equalsIgnoreCase("MainActivity")) {
+                // tell Main Activity to do some stuff!!
+                Log.d(TAG, "BEACON DETECTED FOR THIS MAIN ACTIVITY!");
+                // If the Monitoring Activity is visible, we log info about the beacons we have
+                // seen on its display
+//                mainActivity.logToDisplay("I see a beacon again" );
+            } else {
+                // If we have already seen beacons before, but the monitoring activity is not in
+                // the foreground, we send a notification to the user on subsequent detections.
+                Log.d(TAG, "Sending notification.");
+                sendNotification();
+            }
+        }
     }
 
     @Override
@@ -54,5 +210,25 @@ public class BeaconApplication extends Application implements BootstrapNotifier 
     @Override
     public void didDetermineStateForRegion(int i, Region region) {
         // leave empty
+    }
+
+    private void sendNotification() {
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setContentTitle("Beacon Reference Application")
+                        .setContentText("An beacon is nearby.")
+                        .setSmallIcon(R.drawable.cast_ic_notification_0);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        builder.setContentIntent(resultPendingIntent);
+        NotificationManager notificationManager =
+                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
     }
 }
