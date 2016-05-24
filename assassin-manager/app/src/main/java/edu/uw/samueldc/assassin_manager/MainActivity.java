@@ -11,15 +11,13 @@ import android.os.IBinder;
 import android.support.design.widget.TabLayout;
 
 import android.os.Bundle;
-
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -58,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     Firebase fireBaseRef;
 
     private String playerName;
-    private String roomName;
+    private static String roomName;
 
     private boolean bound;
     private Collection<Beacon> beacons;
@@ -214,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     }
 
+
     public static class PageAdapter extends FragmentPagerAdapter {
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -230,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 0:
                     return new LobbyFragment();
                 case 1:
-                    return new MapFragment();
+                    return new MapFragment().newInstance(roomName);
                 case 2:
                     return new MeFragment();
                 case 3:

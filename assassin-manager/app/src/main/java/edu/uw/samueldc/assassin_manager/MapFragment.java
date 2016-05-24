@@ -1,83 +1,83 @@
 package edu.uw.samueldc.assassin_manager;
 
-//import android.Manifest;
-//import android.content.Intent;
-//import android.content.pm.PackageManager;
-//import android.location.Criteria;
-//import android.location.Location;
-//import android.location.LocationManager;
-//import android.net.Uri;
-//import android.os.Environment;
-//
-//import com.google.android.gms.common.ConnectionResult;
-//import com.google.android.gms.location.LocationRequest;
-//import com.google.android.gms.location.LocationServices;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapFragment extends Fragment {
 
-    // fake some data on the map: player1 and player2
-
-    static final LatLng player1 = new LatLng(53.558, 9.927);
-    static final LatLng player2 = new LatLng(53.551, 9.993);
     private GoogleMap map;
-    private static View view;
+
+    
+
+    static final LatLng ME = new LatLng(47.654980, -122.307560);
+    static final LatLng PLAYER1 = new LatLng(47.654995, -122.307580);
+    static final LatLng PLAYER2 = new LatLng(47.654965, -122.307570);
+
+    private static String myRoom;
+
+    public static LobbyFragment newInstance(String room) {
+        LobbyFragment fragment = new LobbyFragment();
+        Bundle args = new Bundle();
+        args.putString("room", room);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            myRoom = getArguments().getString("room");
+        }
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if (view != null) {
-            ViewGroup parent = (ViewGroup) view.getParent();
-            if (parent != null)
-                parent.removeView(view);
-        }
-        try {
-            view = inflater.inflate(R.layout.fragment_map, container, false);
-        } catch (InflateException e) {
-        /* map is already there, just return view as it is */
-        }
+        View v = inflater.inflate(R.layout.fragment_map, null, false);
+        
+        MapsInitializer.initialize(getContext());
 
-//        View v = inflater.inflate(R.layout.fragment_map, container, false);
+        map = ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map))
+                .getMap();
 
-        map = ((SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map)).getMap();
-
-        Marker hamburg = map.addMarker(new MarkerOptions().position(player1)
+        Marker me = map.addMarker(new MarkerOptions()
+                .position(ME)
+                .title("Me"));
+//                .icon(BitmapDescriptorFactory;
+//                        .fromResource(R.drawable.map_me)));
+        Marker player1 = map.addMarker(new MarkerOptions()
+                .position(PLAYER1)
                 .title("Player 1"));
-        Marker kiel = map.addMarker(new MarkerOptions()
-                .position(player2)
+//                .icon(BitmapDescriptorFactory;
+//                        .fromResource(R.drawable.map_dead)));
+        Marker player2 = map.addMarker(new MarkerOptions()
+                .position(PLAYER2)
                 .title("Player 2"));
+//                .icon(BitmapDescriptorFactory;
+//                        .fromResource(R.drawable.map_alive)));
 
-        // Move the camera instantly to hamburg with a zoom of 15.
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(player1, 15));
+        // Move the camera instantly to myself with a zoom of 20.
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(ME, 100));
 
         // Zoom in, animating the camera.
-        map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+        map.animateCamera(CameraUpdateFactory.zoomTo(20), 2000, null);
 
+        //...
 
-        return view;
+        return v;
     }
 
 //    @Override
