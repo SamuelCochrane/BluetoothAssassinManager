@@ -3,6 +3,7 @@ package edu.uw.samueldc.assassin_manager;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ public class MapFragment extends Fragment {
 
     private GoogleMap map;
 
+    private static View view;
     
 
     static final LatLng ME = new LatLng(47.654980, -122.307560);
@@ -46,8 +48,17 @@ public class MapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_map, null, false);
-        
+        if (view != null) {
+            ViewGroup parent = (ViewGroup) view.getParent();
+            if (parent != null)
+                parent.removeView(view);
+        }
+        try {
+            view = inflater.inflate(R.layout.fragment_map, container, false);
+        } catch (InflateException e) {
+        /* map is already there, just return view as it is */
+        }
+
         MapsInitializer.initialize(getContext());
 
         map = ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map))
@@ -77,7 +88,7 @@ public class MapFragment extends Fragment {
 
         //...
 
-        return v;
+        return view;
     }
 
 //    @Override

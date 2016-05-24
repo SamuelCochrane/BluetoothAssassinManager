@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 0:
                     return new LobbyFragment();
                 case 1:
-                    return new MapFragment().newInstance(roomName);
+                    return (new MapFragment()).newInstance(roomName);
                 case 2:
                     return new MeFragment();
                 case 3:
