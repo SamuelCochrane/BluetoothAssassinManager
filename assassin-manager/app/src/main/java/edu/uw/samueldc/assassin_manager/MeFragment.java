@@ -26,12 +26,35 @@ import java.util.Map;
 public class MeFragment extends Fragment {
     private static final String TAG = "***MeFrag***";
     Firebase fireBaseRef;
-    String playerName;
+    static String playerName;
+    static String playerID;
+    static String playerRoom;
     String playerScore;
     String playerStatus;
     TextView tvName;
     TextView tvScore;
     TextView tvStatus;
+
+
+
+
+    public static MeFragment newInstance(String name, String room) {
+        MeFragment fragment = new MeFragment();
+        Bundle args = new Bundle();
+        args.putString("name", name);
+        args.putString("room", room);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            playerName = getArguments().getString("name");
+            playerRoom = getArguments().getString("room");
+        }
+    }
 
     public MeFragment() {
         // Required empty public constructor
@@ -40,18 +63,13 @@ public class MeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        View v = inflater.inflate(R.layout.fragment_me, container, false);
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
 
-        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        View v = inflater.inflate(R.layout.fragment_me, container, false);
+
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
+        fireBaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (playerName == null) {
-                    playerName = ((MainActivity) getActivity()).getPlayerName();
-                }
-
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
                     if (child.child("name").getValue().toString().equalsIgnoreCase(playerName)) {
                         //found our player

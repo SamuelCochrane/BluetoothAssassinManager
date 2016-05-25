@@ -15,7 +15,8 @@ import org.altbeacon.beacon.Beacon;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.HashMap;
+import java.util.Map;
 
 
 import android.content.Context;
@@ -47,7 +48,7 @@ public class LobbyFragment extends ListFragment {
     static String playerName;
     static String playerRoom;
 
-    private OnFragmentInteractionListener mListener;
+    private Map<String, Object> userData = new HashMap<String, Object>();
 
     public LobbyFragment() {
         // Required empty public constructor
@@ -83,7 +84,7 @@ public class LobbyFragment extends ListFragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_lobby, container, false);
 
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom +"/users");
 
         fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -93,14 +94,51 @@ public class LobbyFragment extends ListFragment {
                 ArrayList<String> statusArrayList = new ArrayList<String>();
                 ArrayList<String> killsArrayList = new ArrayList<String>();
 
+                ArrayList<String> roomUsers = new ArrayList<String>();
+
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    String name = child.child("name").getValue().toString();
+                    roomUsers.add(child.getKey());
+                }
+
+                Log.i(TAG, "List: " + roomUsers.toString());
+                for (final String userID : roomUsers) {
+                    Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                    Log.i(TAG, "UserID data: " + ref.getKey());
+                    final ArrayList<String> data = new ArrayList<String>();
+                    ref.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                data.add(child.getValue().toString());
+                            }
+                            userData.put(userID, data);
+                            Log.v(TAG, "UserData List: " + userData);
+                        }
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                        }
+                    });
+                }
+
+
+
+                for(String s : userData.keySet()) {
+                    ArrayList<String> data = (ArrayList<String>)userData.get(s);
+                    Log.i(TAG, "---DATA: " + data);
+
+
+
+                    String name = data.get(5).toString();
+                    Log.i(TAG, "---NAME: " + name);
                     namesArrayList.add(name);
 
-                    String status = child.child("status").getValue().toString();
+                    String status =  data.get(6);
+                    Log.i(TAG, "---STATUS: " + status);
                     statusArrayList.add(status);
 
-                    String kill = child.child("kills").getValue().toString();
+                    String kill = data.get(2);
+                    Log.i(TAG, "---KILLS: " + kill);
                     killsArrayList.add(kill);
                 }
 
@@ -110,28 +148,33 @@ public class LobbyFragment extends ListFragment {
                 String[] kills = killsArrayList.toArray(new String[0]);
 
                 setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
-                        names, status, kills, null)); //null -> TypedArray icons
-        /**/
+                names, status, kills, null)); //null -> TypedArray icons
+
 
 
 
             }
+
             @Override
-            public void onCancelled (FirebaseError firebaseError){
+            public void onCancelled(FirebaseError firebaseError) {
                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
             }
-
         });
+
 
         return v;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
+/*    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
-    }
+    }*/
+
+
+
+
 
 //    @Override
 //    public void onAttach(Context context) {
@@ -147,7 +190,7 @@ public class LobbyFragment extends ListFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+//        mListener = null;
     }
 
     /**
