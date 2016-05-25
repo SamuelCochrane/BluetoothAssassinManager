@@ -64,6 +64,52 @@ public class EnterActivity extends AppCompatActivity {
                 // Add restrictions for username and room name here, if wanted
                 if(room.length() >= 4 && username.length() >= 3) {
                     checkUserExistence(username, room);
+                } else {
+                    if (room.length() < 4) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(EnterActivity.this);
+
+                        dialog.setCancelable(false);
+                        dialog.setIcon(R.drawable.login_icon);
+                        dialog.setTitle("Room Name Too Short!");
+                        dialog.setMessage("Room Name Should Contain at Least 4 Letters or Digits.");
+                        dialog.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+
+                        if (username.length() < 3) {
+                            AlertDialog.Builder dialog2 = new AlertDialog.Builder(EnterActivity.this);
+
+                            dialog2.setCancelable(false);
+                            dialog2.setIcon(R.drawable.login_icon);
+                            dialog2.setTitle("User Name Too Short!");
+                            dialog2.setMessage("User Name Should Contain at Least 3 Letters or Digits.");
+                            dialog2.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            dialog2.show();
+                    }
+
+                    }
+                    else {
+                        AlertDialog.Builder dialog2 = new AlertDialog.Builder(EnterActivity.this);
+
+                        dialog2.setCancelable(false);
+                        dialog2.setIcon(R.drawable.login_icon);
+                        dialog2.setTitle("User Name Too Short!");
+                        dialog2.setMessage("User Name Should Contain at Least 3 Letters or Digits.");
+                        dialog2.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog2.show();
+                    }
+
                 }
 
             }
