@@ -58,6 +58,7 @@ public class MapFragment extends Fragment {
     }
 
 
+    // TODO: BUG IN THIS METHOD
     public void getData() {
         // query to database to get all users in the room
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
@@ -68,9 +69,11 @@ public class MapFragment extends Fragment {
 
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
                     arrayList.add(child.child("users").getChildren());
-                }
+            }
 
-                Log.v(TAG, arrayList.get(0).toString());
+                if (arrayList.size() != 0) {
+                    Log.v(TAG, arrayList.get(0).toString());
+                }
 
             }
 

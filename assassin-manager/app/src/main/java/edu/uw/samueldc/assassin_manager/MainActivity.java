@@ -2,6 +2,7 @@ package edu.uw.samueldc.assassin_manager;
 
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -26,6 +27,7 @@ import com.firebase.client.ValueEventListener;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private BeaconReceiver receiver = null;
     private boolean isRegistered = false;
-    private HashMap<String, String> userData;
+    private static HashMap<String, String> userData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -263,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 0:
                     return new LobbyFragment();
                 case 1:
-                    return (new MapFragment()).newInstance(roomName);
+                    return (new MapFragment()).newInstance(userData.get("room"));
                 case 2:
                     return new MeFragment();
                 case 3:

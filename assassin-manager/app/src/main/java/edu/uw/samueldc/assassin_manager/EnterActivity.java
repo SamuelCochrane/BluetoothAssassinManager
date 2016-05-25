@@ -232,6 +232,7 @@ public class EnterActivity extends AppCompatActivity {
         userData.put("name", username);
         userData.put("id2", "1");
         userData.put("id3", "2");
+        userData.put("room", room);
         userData.put("nameHash", Integer.toString(username.hashCode()));
         userData.put("roomHash", Integer.toString(room.hashCode()));
         userData.put("kills", "0");

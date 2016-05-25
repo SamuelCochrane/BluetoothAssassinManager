@@ -59,6 +59,8 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     private Beacon transmittedBeacon;
     private boolean isRunning = false;
 
+    HashMap<String, String> userData = null;
+
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
@@ -128,7 +130,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.v(TAG, "Intent received!");
 
-        HashMap<String, String> userData = null;
+
 
         Bundle receivedInfo = intent.getExtras();
         if (receivedInfo != null) {
@@ -239,6 +241,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             // MainActivity
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("userData", userData);
+            intent.putExtras(bundle);
             this.startActivity(intent);
 
             haveDetectedBeaconsSinceBoot = true;
