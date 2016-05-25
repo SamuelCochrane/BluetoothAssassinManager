@@ -40,6 +40,7 @@ public class EnterActivity extends AppCompatActivity {
     private String userId;
 
     Firebase fireBaseRef;
+    HashMap<String, String> userData;
 
 
     @Override
@@ -190,7 +191,7 @@ public class EnterActivity extends AppCompatActivity {
                     user.put("name", username);
 
                     // Add user to list of users, and get userID
-                    String userID = createNewUser(username);
+                    String userID = createNewUser(username, room);
 
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
                     fireBaseRef.child(room + "/users/" + userID).setValue(user);
@@ -201,10 +202,9 @@ public class EnterActivity extends AppCompatActivity {
                     Log.d(TAG, "player name: " + playerName);
                     String roomName = etRoomName.getText().toString();
 
-                    Bundle bundle = new Bundle();
                     Intent intent = new Intent(EnterActivity.this, MainActivity.class);
-                    bundle.putString("playerName", playerName);
-                    bundle.putString("roomName", roomName);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("userData", userData);
                     intent.putExtras(bundle);
 
                     startActivity(intent);
@@ -222,16 +222,19 @@ public class EnterActivity extends AppCompatActivity {
 
     }
 
-    public String createNewUser(String username) {
+    public String createNewUser(String username, String room) {
         Log.v(TAG, "Creating new User!");
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
 
 
-        Map<String, String> userData = new HashMap<String, String>();
+        userData = new HashMap<String, String>();
         userData.put("name", username);
         userData.put("id2", "1");
         userData.put("id3", "2");
+        userData.put("room", room);
+        userData.put("nameHash", Integer.toString(username.hashCode()));
+        userData.put("roomHash", Integer.toString(room.hashCode()));
         userData.put("kills", "0");
         userData.put("latitude", "");
         userData.put("longitude", "");

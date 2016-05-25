@@ -8,6 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.altbeacon.beacon.Beacon;
+
+import java.util.Collection;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -49,6 +53,10 @@ public class LobbyFragment extends Fragment {
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public void receivedBeacons(Collection<Beacon> beacons) {
+
     }
 
     @Override
