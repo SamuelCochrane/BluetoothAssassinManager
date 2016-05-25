@@ -1,26 +1,12 @@
 package edu.uw.samueldc.assassin_manager;
 
 import android.content.Context;
-import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import org.altbeacon.beacon.Beacon;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-
-import android.content.Context;
-import android.content.res.TypedArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +18,13 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+
+import org.altbeacon.beacon.Beacon;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -78,6 +71,9 @@ public class LobbyFragment extends ListFragment {
 
     }
 
+    private String[] names, kills, status;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -86,13 +82,12 @@ public class LobbyFragment extends ListFragment {
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom +"/users");
 
-        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        fireBaseRef.addValueEventListener(new ValueEventListener() {
+
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                ArrayList<String> namesArrayList = new ArrayList<String>();
-                ArrayList<String> statusArrayList = new ArrayList<String>();
-                ArrayList<String> killsArrayList = new ArrayList<String>();
 
                 ArrayList<String> roomUsers = new ArrayList<String>();
 
@@ -108,11 +103,21 @@ public class LobbyFragment extends ListFragment {
                     ref.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+
                             for (DataSnapshot child : dataSnapshot.getChildren()) {
                                 data.add(child.getValue().toString());
                             }
+                            userData.remove(userID);
                             userData.put(userID, data);
-                            Log.v(TAG, "UserData List: " + userData);
+//                            Log.v(TAG, "UserData List: " + userData);
+                            Log.v(TAG,"Data List: "+data.toString());
+
+                            updateReferences();
+
+                            if(names != null) {
+                                setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
+                                        names, status, kills, null)); //null -> TypedArray icons
+                            }
                         }
                         @Override
                         public void onCancelled(FirebaseError firebaseError) {
@@ -123,29 +128,7 @@ public class LobbyFragment extends ListFragment {
 
 
 
-                for(String s : userData.keySet()) {
-                    ArrayList<String> data = (ArrayList<String>)userData.get(s);
-                    Log.i(TAG, "---DATA: " + data);
-
-
-
-                    String name = data.get(5).toString();
-                    Log.i(TAG, "---NAME: " + name);
-                    namesArrayList.add(name);
-
-                    String status =  data.get(6);
-                    Log.i(TAG, "---STATUS: " + status);
-                    statusArrayList.add(status);
-
-                    String kill = data.get(2);
-                    Log.i(TAG, "---KILLS: " + kill);
-                    killsArrayList.add(kill);
-                }
-
-
-                String[] names = namesArrayList.toArray(new String[0]);
-                String[] status = statusArrayList.toArray(new String[0]);
-                String[] kills = killsArrayList.toArray(new String[0]);
+                updateReferences();
 
                 setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
                 names, status, kills, null)); //null -> TypedArray icons
@@ -172,6 +155,35 @@ public class LobbyFragment extends ListFragment {
         }
     }*/
 
+    private void updateReferences() {
+        ArrayList<String> namesArrayList = new ArrayList<String>();
+        ArrayList<String> statusArrayList = new ArrayList<String>();
+        ArrayList<String> killsArrayList = new ArrayList<String>();
+
+        for(String s : userData.keySet()) {
+            ArrayList<String> data = (ArrayList<String>)userData.get(s);
+            Log.i(TAG, "---DATA: " + data);
+
+
+
+            String name = data.get(5).toString();
+            Log.i(TAG, "---NAME: " + name);
+            namesArrayList.add(name);
+
+            String status =  data.get(9);
+            Log.i(TAG, "---STATUS: " + status);
+            statusArrayList.add(status);
+
+            String kill = data.get(2);
+            Log.i(TAG, "---KILLS: " + kill);
+            killsArrayList.add(kill);
+        }
+
+
+        names = namesArrayList.toArray(new String[0]);
+        status = statusArrayList.toArray(new String[0]);
+        kills = killsArrayList.toArray(new String[0]);
+    }
 
 
 

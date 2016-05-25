@@ -22,7 +22,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +90,7 @@ public class MapFragment extends Fragment {
                             }
                             userData.put(userID, data);
 
-                            Log.v(TAG,"Data List: "+data.toString());
+//                            Log.v(TAG,"Data List: "+data.toString());
 
                         }
 
