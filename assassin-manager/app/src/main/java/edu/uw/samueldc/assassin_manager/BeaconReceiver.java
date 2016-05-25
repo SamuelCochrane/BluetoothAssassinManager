@@ -15,19 +15,32 @@ import java.util.ArrayList;
 public class BeaconReceiver extends BroadcastReceiver {
     private static final String TAG = "**Beacon Receiver**";
 
+    private OnBeaconReceivedListener listener = null;
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (listener != null) {
+            listener.onBeaconReceived(context, intent);
+        }
         String str = intent.getAction();
         // if receive beacons, try to get extras
-        if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
-//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
-            // a list of beacons
-            ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
-            Log.d(TAG, beacons.get(0).toString());
-        } else if (str.equals(BeaconApplication.RANGING_DONE)) {
-            Log.d(TAG, "ENTER A NEW BEACON REGION!");
-        } else {
-            Log.d(TAG, "NOOOOO BEACON!!");
-        }
+//        if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
+////                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
+//            // a list of beacons
+//            ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
+//            Log.d(TAG, beacons.get(0).toString());
+//        } else if (str.equals(BeaconApplication.RANGING_DONE)) {
+//            Log.d(TAG, "ENTER A NEW BEACON REGION!");
+//        } else {
+//            Log.d(TAG, "NOOOOO BEACON!!");
+//        }
+    }
+
+    public void setOnBeaconReceivedListener(Context context) {
+        this.listener = (OnBeaconReceivedListener) context;
+    }
+
+    public interface OnBeaconReceivedListener {
+        public void onBeaconReceived(Context context, Intent intent);
     }
 }

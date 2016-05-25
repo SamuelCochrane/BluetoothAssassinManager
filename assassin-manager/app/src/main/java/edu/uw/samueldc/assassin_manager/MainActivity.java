@@ -43,8 +43,9 @@ import org.altbeacon.beacon.startup.RegionBootstrap;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity implements ServiceConnection {
+public class MainActivity extends AppCompatActivity implements ServiceConnection, BeaconReceiver.OnBeaconReceivedListener {
     static final int NUM_SCREEN = 4;
 
     private static final String TAG = "MainActivity";
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private BeaconReceiver receiver = null;
     private boolean isRegistered = false;
+    private HashMap<String, String> userData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +111,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // ============ db stuff
         // Passed bundle info to use for the database
         Bundle bundle = getIntent().getExtras();
-        if (bundle != null && playerName == null && roomName == null) {
-            playerName = bundle.getString("playerName");
-            roomName = bundle.getString("roomName");
+        if (bundle != null && userData == null) {
+            userData = (HashMap) bundle.getSerializable("userData");
         }
 
 
@@ -137,13 +138,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        filter.addAction(BeaconApplication.RANGING_DONE);
 //        registerReceiver(receiver, filter);
         receiver = new BeaconReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BeaconApplication.BROADCAST_BEACON);
-        filter.addAction(BeaconApplication.RANGING_DONE);
-        registerReceiver(receiver, filter);
-        isRegistered = true;
+        receiver.setOnBeaconReceivedListener(this);
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(BeaconApplication.BROADCAST_BEACON);
+//        filter.addAction(BeaconApplication.RANGING_DONE);
+//        registerReceiver(receiver, filter);
+//        isRegistered = true;
         // start the beacon service in the backgorund thread
+        // and pass userName and roonName to Beacon
         Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
+        Bundle userInfo = new Bundle();
+        userInfo.putSerializable("userData", userData);
+        intent.putExtras(userInfo);
         startService(intent);
 
 
@@ -160,6 +166,30 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 viewPager.setCurrentItem(NUM_SCREEN-1);
             }
         });
+    }
+
+    // when received beacon list
+    @Override
+    public void onBeaconReceived(Context context, Intent intent) {
+        String str = intent.getAction();
+        // if receive beacons, try to get extras
+        if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
+//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
+            // a list of beacons
+            ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
+            Log.d(TAG, beacons.get(0).toString());
+            // pass newly received beacon list to each fragment by calling their specified method
+            for(int i = 0; i < pageAdapter.getCount(); i++) {
+                Fragment viewPagerFragment = pageAdapter.getItem(i);
+                if(viewPagerFragment != null) {
+                    // TODO: add update beacon list to specified fragment!
+                }
+            }
+        } else if (str.equals(BeaconApplication.RANGING_DONE)) {
+            Log.d(TAG, "ENTER A NEW BEACON REGION!");
+        } else {
+            Log.d(TAG, "NOOOOO BEACON!!");
+        }
     }
 
     @Override
