@@ -22,7 +22,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,6 +104,7 @@ public class MapFragment extends Fragment {
                                 data.add(child.getValue().toString());
                             }
 
+<<<<<<< HEAD
                             Log.v(TAG,"The data list: "+data.toString());
 
                             Double latitude = Double.parseDouble(data.get(3));
@@ -134,6 +134,9 @@ public class MapFragment extends Fragment {
 
                             }
 
+=======
+//                            Log.v(TAG,"Data List: "+data.toString());
+>>>>>>> 0eec49c30dc03658d3f2be0dec249645058abef9
 
 
                         @Override
