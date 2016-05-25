@@ -23,6 +23,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapFragment extends Fragment {
 
@@ -37,7 +39,9 @@ public class MapFragment extends Fragment {
     static final LatLng PLAYER2 = new LatLng(47.654965, -122.307570);
 
     private static String myRoom;
-    ArrayList<Object> arrayList = new ArrayList<>();
+    private ArrayList<String> roomUsers = new ArrayList<String>();
+    private Map<String, Object> userData = new HashMap<String, Object>();
+
     Firebase fireBaseRef;
 
     public static MapFragment newInstance(String room) {
@@ -60,17 +64,43 @@ public class MapFragment extends Fragment {
 
     public void getData() {
         // query to database to get all users in the room
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
 
-        fireBaseRef.child(myRoom).addValueEventListener(new ValueEventListener() {
+        fireBaseRef.child(myRoom + "/users").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    arrayList.add(child.child("users").getChildren());
+                    roomUsers.add(child.getKey());
                 }
 
-                Log.v(TAG, arrayList.get(0).toString());
+                Log.v(TAG, "List: " + roomUsers.toString());
+
+                for(final String userID : roomUsers) {
+                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                    Log.v(TAG, "UserID data: " + fireBaseRef.getKey());
+
+                    final ArrayList<String> data = new ArrayList<String>();
+
+                    fireBaseRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            for(DataSnapshot child : dataSnapshot.getChildren()) {
+                                data.add(child.getValue().toString());
+                            }
+                            userData.put(userID, data);
+
+                            Log.v(TAG, "UserData List: " + userData);
+
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
+
+                }
 
             }
 
@@ -79,6 +109,10 @@ public class MapFragment extends Fragment {
 
             }
         });
+
+
+
+
     }
 
 
