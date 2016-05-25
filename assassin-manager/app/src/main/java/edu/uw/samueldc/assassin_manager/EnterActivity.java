@@ -246,6 +246,8 @@ public class EnterActivity extends AppCompatActivity {
         newUserRef.setValue(userData);
         userId = newUserRef.getKey();
 
+        Log.d(TAG, "USER ID IS: " + userId);
+
         return userId;
     }
 
