@@ -236,8 +236,8 @@ public class EnterActivity extends AppCompatActivity {
         userData.put("nameHash", Integer.toString(username.hashCode()));
         userData.put("roomHash", Integer.toString(room.hashCode()));
         userData.put("kills", "0");
-        userData.put("latitude", "");
-        userData.put("longitude", "");
+        userData.put("latitude", "47.6553");
+        userData.put("longitude", "122.3035");
         userData.put("status", "alive");
         userData.put("target", "");
 
