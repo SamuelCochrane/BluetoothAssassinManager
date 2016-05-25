@@ -208,6 +208,7 @@ public class EnterActivity extends AppCompatActivity {
                     intent.putExtras(bundle);
 
                     startActivity(intent);
+
                 }
             }
 

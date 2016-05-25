@@ -3,24 +3,33 @@ package edu.uw.samueldc.assassin_manager;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
 
 public class MapFragment extends Fragment {
 
     private GoogleMap map;
 
     private static View view;
+    private static final String TAG = "***MapFragment***";
     
 
     static final LatLng ME = new LatLng(47.654980, -122.307560);
@@ -28,6 +37,8 @@ public class MapFragment extends Fragment {
     static final LatLng PLAYER2 = new LatLng(47.654965, -122.307570);
 
     private static String myRoom;
+    ArrayList<Object> arrayList = new ArrayList<>();
+    Firebase fireBaseRef;
 
     public static MapFragment newInstance(String room) {
         MapFragment fragment = new MapFragment();
@@ -42,11 +53,39 @@ public class MapFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             myRoom = getArguments().getString("room");
+            Log.v(TAG, myRoom);
         }
     }
 
+
+    public void getData() {
+        // query to database to get all users in the room
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
+
+        fireBaseRef.child(myRoom).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    arrayList.add(child.child("users").getChildren());
+                }
+
+                Log.v(TAG, arrayList.get(0).toString());
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+    }
+
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        getData();
 
         if (view != null) {
             ViewGroup parent = (ViewGroup) view.getParent();
@@ -66,19 +105,19 @@ public class MapFragment extends Fragment {
 
         Marker me = map.addMarker(new MarkerOptions()
                 .position(ME)
-                .title("Me"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_me)));
+                .title("Me")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_me)));
         Marker player1 = map.addMarker(new MarkerOptions()
                 .position(PLAYER1)
-                .title("Player 1"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_dead)));
+                .title("Player 1")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_dead)));
         Marker player2 = map.addMarker(new MarkerOptions()
                 .position(PLAYER2)
-                .title("Player 2"));
-//                .icon(BitmapDescriptorFactory;
-//                        .fromResource(R.drawable.map_alive)));
+                .title("Player 2")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.map_alive)));
 
         // Move the camera instantly to myself with a zoom of 20.
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(ME, 100));
