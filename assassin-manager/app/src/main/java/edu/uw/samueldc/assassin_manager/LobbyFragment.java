@@ -1,16 +1,36 @@
 package edu.uw.samueldc.assassin_manager;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.util.ArrayList;
 import java.util.Collection;
+
+
+
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 
 /**
@@ -21,15 +41,11 @@ import java.util.Collection;
  * Use the {@link LobbyFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LobbyFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+public class LobbyFragment extends ListFragment {
+    private static final String TAG = "***LobbyFrag***";
+    Firebase fireBaseRef;
+    static String playerName;
+    static String playerRoom;
 
     private OnFragmentInteractionListener mListener;
 
@@ -37,42 +53,77 @@ public class LobbyFragment extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment LobbyFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static LobbyFragment newInstance(String param1, String param2) {
-        LobbyFragment fragment = new LobbyFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     public void receivedBeacons(Collection<Beacon> beacons) {
 
+    }
+
+    public static LobbyFragment newInstance(String name, String room) {
+        LobbyFragment fragment = new LobbyFragment();
+        Bundle args = new Bundle();
+        args.putString("name", name);
+        args.putString("room", room);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            playerName = getArguments().getString("name");
+            playerRoom = getArguments().getString("room");
         }
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_lobby, container, false);
+        View v = inflater.inflate(R.layout.fragment_lobby, container, false);
+
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
+
+        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                ArrayList<String> namesArrayList = new ArrayList<String>();
+                ArrayList<String> statusArrayList = new ArrayList<String>();
+                ArrayList<String> killsArrayList = new ArrayList<String>();
+
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    String name = child.child("name").getValue().toString();
+                    namesArrayList.add(name);
+
+                    String status = child.child("status").getValue().toString();
+                    statusArrayList.add(status);
+
+                    String kill = child.child("kills").getValue().toString();
+                    killsArrayList.add(kill);
+                }
+
+
+                String[] names = namesArrayList.toArray(new String[0]);
+                String[] status = statusArrayList.toArray(new String[0]);
+                String[] kills = killsArrayList.toArray(new String[0]);
+
+                setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
+                        names, status, kills, null)); //null -> TypedArray icons
+        /**/
+
+
+
+            }
+            @Override
+            public void onCancelled (FirebaseError firebaseError){
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+
+        });
+
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -104,7 +155,7 @@ public class LobbyFragment extends Fragment {
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -113,4 +164,77 @@ public class LobbyFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+    class ImageAndTextAdapter extends ArrayAdapter<String> {
+
+        private LayoutInflater mInflater;
+
+        private String[] mNames;
+        private String[] mStatus;
+        private String[] mKills;
+        private TypedArray mIcons;
+
+        private int mViewResourceId;
+
+        public ImageAndTextAdapter(Context ctx, int viewResourceId,
+                                   String[] names, String[] status, String[] kills, TypedArray icons) {
+            super(ctx, viewResourceId, names);
+
+            mInflater = (LayoutInflater) ctx.getSystemService(
+                    Context.LAYOUT_INFLATER_SERVICE);
+
+            mNames = names;
+            mStatus = status;
+            mKills = kills;
+
+            mIcons = icons;
+
+            mViewResourceId = viewResourceId;
+        }
+
+        @Override
+        public int getCount() {
+            return mNames.length;
+        }
+
+        @Override
+        public String getItem(int position) {
+            return mNames[position];
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            convertView = mInflater.inflate(mViewResourceId, null);
+
+/*            ImageView iv = (ImageView) convertView.findViewById(R.id.itemIcon);
+            iv.setImageDrawable(mIcons.getDrawable(position));*/
+
+            TextView tvName = (TextView) convertView.findViewById(R.id.itemTitle);
+            tvName.setText(mNames[position]);
+
+            TextView tvKills = (TextView) convertView.findViewById(R.id.itemScore);
+            tvKills.setText(mKills[position]);
+
+            ImageView ivStatus = (ImageView) convertView.findViewById(R.id.itemIcon);
+            if(mStatus[position].equals("dead")) {
+                ivStatus.setImageResource(R.drawable.ic_dead);
+            } else if (mStatus[position].equals("target")) {
+                ivStatus.setImageResource(R.drawable.ic_target);
+            } else {
+                ivStatus.setImageResource(R.drawable.ic_default);
+            }
+
+
+
+            return convertView;
+        }
+    }
 }
+
+

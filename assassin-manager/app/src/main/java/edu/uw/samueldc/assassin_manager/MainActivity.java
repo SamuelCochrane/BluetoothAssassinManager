@@ -263,11 +263,11 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return new LobbyFragment();
+                    return new LobbyFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 1:
                     return (new MapFragment()).newInstance(userData.get("room"));
                 case 2:
-                    return new MeFragment();
+                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 3:
                     return new TargetFragment();
                 default:
