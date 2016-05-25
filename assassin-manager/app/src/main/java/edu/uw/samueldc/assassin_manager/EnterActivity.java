@@ -70,7 +70,7 @@ public class EnterActivity extends AppCompatActivity {
         });
 
         // check permission
-        verifyBluetooth();
+//        verifyBluetooth();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
             if (this.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -231,7 +231,7 @@ public class EnterActivity extends AppCompatActivity {
         userData = new HashMap<String, String>();
         userData.put("name", username);
         userData.put("id2", "1");
-        userData.put("id3", "2");
+        userData.put("id3", "99");
         userData.put("room", room);
         userData.put("nameHash", Integer.toString(username.hashCode()));
         userData.put("roomHash", Integer.toString(room.hashCode()));

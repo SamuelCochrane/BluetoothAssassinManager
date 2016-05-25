@@ -119,11 +119,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         // ============= beacon stuff
         // and register for broadcast receiver from beacon service
-//        IntentFilter filter = new IntentFilter();
-//        filter.addAction(BeaconApplication.BROADCAST_BEACON);
-//        filter.addAction(BeaconApplication.RANGING_DONE);
-//        registerReceiver(receiver, filter);
-
+//        if (!isRegistered) {
+//            IntentFilter filter = new IntentFilter();
+//            filter.addAction(BeaconApplication.BROADCAST_BEACON);
+//            filter.addAction(BeaconApplication.RANGING_DONE);
+//            registerReceiver(receiver, filter);
+//            isRegistered = true;
+//        }
 
         receiver = new BeaconReceiver();
         receiver.setOnBeaconReceivedListener(this);
@@ -165,7 +167,11 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
             // a list of beacons
             ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
-            Log.d(TAG, beacons.get(0).toString());
+            Log.d(TAG, "" + beacons.size());
+//            for (Beacon beacon:beacons) {
+//                Log.d(TAG, beacon.getDataFields().toString());
+//            }
+
             // pass newly received beacon list to each fragment by calling their specified method
             for(int i = 0; i < pageAdapter.getCount(); i++) {
                 Fragment viewPagerFragment = pageAdapter.getItem(i);

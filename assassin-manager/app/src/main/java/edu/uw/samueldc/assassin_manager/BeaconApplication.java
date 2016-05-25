@@ -190,6 +190,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
                     Bundle beaconBundle = new Bundle();
                     ArrayList<Beacon> temList = new ArrayList<Beacon>(beacons);
+                    Log.d(TAG, "" + beacons.size());
                     Log.d(TAG, temList.get(0).toString());
                     beaconBundle.putParcelableArrayList("beacons", temList);
 //                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
@@ -239,12 +240,12 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             // TODO: there is a bug in this place!!!
             // The very first time since boot that we detect an beacon, we launch the
             // MainActivity
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("userData", userData);
-            intent.putExtras(bundle);
-            this.startActivity(intent);
+//            Intent intent = new Intent(this, MainActivity.class);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            Bundle bundle = new Bundle();
+//            bundle.putSerializable("userData", userData);
+//            intent.putExtras(bundle);
+//            this.startActivity(intent);
 
             haveDetectedBeaconsSinceBoot = true;
         } else {
@@ -259,7 +260,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                 // If we have already seen beacons before, but the monitoring activity is not in
                 // the foreground, we send a notification to the user on subsequent detections.
                 Log.d(TAG, "Sending notification.");
-                sendNotification();
+//                sendNotification();
             }
         }
     }
