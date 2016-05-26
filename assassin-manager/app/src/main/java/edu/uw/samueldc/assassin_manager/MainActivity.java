@@ -30,6 +30,7 @@ import org.altbeacon.beacon.Beacon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection, BeaconReceiver.OnBeaconReceivedListener {
     static final int NUM_SCREEN = 4;
@@ -168,9 +169,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             // a list of beacons
             ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
             Log.d(TAG, "" + beacons.size());
-//            for (Beacon beacon:beacons) {
-//                Log.d(TAG, beacon.getDataFields().toString());
-//            }
+            for (Beacon beacon:beacons) {
+                List<Long> dataFields = beacon.getDataFields();
+                for (Long hashcode : dataFields) {
+                    Log.d(TAG, "NAME / ROOM HASHCODES: " + hashcode + "");
+                }
+//                Log.d(TAG, beacon.getDataFields());
+            }
 
             // pass newly received beacon list to each fragment by calling their specified method
             for(int i = 0; i < pageAdapter.getCount(); i++) {

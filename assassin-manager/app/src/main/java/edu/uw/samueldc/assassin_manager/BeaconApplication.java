@@ -14,11 +14,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -139,15 +145,19 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
         if (transmittedBeacon == null && userData != null) {
             // build a beacon
+            Log.d(TAG, "USER NAME HASH: " + userData.get("nameHash"));
             transmittedBeacon = new Beacon.Builder()
                     .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
                     .setId2(userData.get("id2"))
                     .setId3(userData.get("id3"))
                     .setManufacturer(0x0118)
                     .setTxPower(-59)
-                    .setDataFields(Arrays.asList(new Long[]{Long.valueOf(userData.get("nameHash")), Long.valueOf(userData.get("roomHash"))}))
+                    .setDataFields(Arrays.asList(new Long[]{(Integer.valueOf(userData.get("nameHash")).longValue())}))
                     .build();
-
+//            List<Long> datafield = transmittedBeacon.getDataFields();
+//            for (Long data : datafield) {
+//                Log.d(TAG, "TRANSFERRED NAME HASH: " + data);
+//            }
             // set fake beacon device type layout
             BeaconParser beaconParser = new BeaconParser()
                     .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
@@ -186,12 +196,48 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 //                Toast.makeText(context, "RECEIVE BEACON MESSAGE!!", Toast.LENGTH_SHORT).show();
                 if (beacons.size() > 0) {
 
+                    for (Beacon beacon : beacons) {
+                        List<Long> datafileds = beacon.getDataFields();
+                        for (Long data : datafileds) {
+                            Log.d(TAG, "RECEIVED BEACON HASH CODE: " + data);
+                        }
+//                        Log.d(TAG, "RECEIVED BEACON HASH CODE: " + beacon.getDataFields())
+                    }
+
+                    final String room = userData.get("room");
+                    final String username = userData.get("name");
+                    final String nameHash = userData.get("nameHash");
+
+                    // ========= check if one of those beacons is hunter or prey <------ check itself for testing right now
+                    // TODO: EXTEND IT TO CHECK OTHER BEACONS -- NEED MORE DEVICES
+                    Firebase fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
+
+                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+//                            dataSnapshot.getValue();
+                           for (DataSnapshot child : dataSnapshot.getChildren()) {
+//                               Log.d(TAG, child.toString());
+//                               Log.d(TAG, child.child("name").getValue().toString());
+                               if (child.child("nameHash").getValue().toString().equalsIgnoreCase(nameHash)) {
+                                   Log.d(TAG, "========= FOUND YOURSELF");
+                                   sendNotification();
+                               }
+                           }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+                           Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                        }
+                    });
+
                     // send collections of beacons as broadcast message to other activities
                     Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
                     Bundle beaconBundle = new Bundle();
                     ArrayList<Beacon> temList = new ArrayList<Beacon>(beacons);
-                    Log.d(TAG, "" + beacons.size());
-                    Log.d(TAG, temList.get(0).toString());
+//                    Log.d(TAG, "" + beacons.size());
+//                    Log.d(TAG, temList.get(0).toString());
                     beaconBundle.putParcelableArrayList("beacons", temList);
 //                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
                     broadcastBeaconsIntent.putExtras(beaconBundle);
@@ -223,46 +269,11 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         LocalBroadcastManager.getInstance(this).sendBroadcast(
                 rangingDoneIntent);
 
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        this.startActivity(intent);
-
-        // check current activity name
-        ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
-        Log.d("topActivity", "CURRENT Activity ::" + taskInfo.get(0).topActivity.getClassName());
-        ComponentName componentInfo = taskInfo.get(0).topActivity;
+        // check if the beacon is its hunter or prey <------- testing itself right now
 
 
-        if (!haveDetectedBeaconsSinceBoot) {
-
-            Log.d(TAG, "auto launching MainActivity");
-
-            // TODO: there is a bug in this place!!!
-            // The very first time since boot that we detect an beacon, we launch the
-            // MainActivity
-//            Intent intent = new Intent(this, MainActivity.class);
-//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            Bundle bundle = new Bundle();
-//            bundle.putSerializable("userData", userData);
-//            intent.putExtras(bundle);
-//            this.startActivity(intent);
-
-            haveDetectedBeaconsSinceBoot = true;
-        } else {
-
-            if (taskInfo.get(0).topActivity.getClassName().equalsIgnoreCase("MainActivity")) {
-                // tell Main Activity to do some stuff!!
-                Log.d(TAG, "BEACON DETECTED FOR THIS MAIN ACTIVITY!");
-                // If the Monitoring Activity is visible, we log info about the beacons we have
-                // seen on its display
-//                mainActivity.logToDisplay("I see a beacon again" );
-            } else {
-                // If we have already seen beacons before, but the monitoring activity is not in
-                // the foreground, we send a notification to the user on subsequent detections.
-                Log.d(TAG, "Sending notification.");
-//                sendNotification();
-            }
-        }
+        // since enter a region, no matter if the main activity is opening right now, we push a notification to user
+//        sendNotification();
     }
 
     @Override
@@ -281,9 +292,13 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                         .setContentTitle("Beacon Reference Application")
                         .setContentText("An beacon is nearby.")
                         .setSmallIcon(R.drawable.cast_ic_notification_0)
-                        .setPriority(NotificationCompat.PRIORITY_MAX);
+                        .setVibrate(new long[] {0, 500, 500, 500})
+                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                        .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setVisibility(0);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
         PendingIntent resultPendingIntent =
                 stackBuilder.getPendingIntent(

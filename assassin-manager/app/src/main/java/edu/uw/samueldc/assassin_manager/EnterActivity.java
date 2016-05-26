@@ -235,6 +235,7 @@ public class EnterActivity extends AppCompatActivity {
 
                     Map<String, Object> user = new HashMap<String, Object>();
                     user.put("name", username);
+                    user.put("nameHash", Integer.toString(username.hashCode()));
 
                     // Add user to list of users, and get userID
                     String userID = createNewUser(username, room);
@@ -277,7 +278,7 @@ public class EnterActivity extends AppCompatActivity {
         userData = new HashMap<String, String>();
         userData.put("name", username);
         userData.put("id2", "1");
-        userData.put("id3", "99");
+        userData.put("id3", "77");
         userData.put("room", room);
         userData.put("nameHash", Integer.toString(username.hashCode()));
         userData.put("roomHash", Integer.toString(room.hashCode()));
