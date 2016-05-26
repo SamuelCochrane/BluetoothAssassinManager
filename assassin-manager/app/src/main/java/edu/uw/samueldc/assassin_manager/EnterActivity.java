@@ -251,6 +251,8 @@ public class EnterActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(EnterActivity.this, MainActivity.class);
                     Bundle bundle = new Bundle();
+
+//                    bundle.putString("userID", userID);
                     bundle.putSerializable("userData", userData);
                     intent.putExtras(bundle);
 
@@ -288,10 +290,12 @@ public class EnterActivity extends AppCompatActivity {
         userData.put("status", "alive");
         userData.put("target", "");
 
+
         // Add user to users list, with unique ID
         Firebase newUserRef = fireBaseRef.push();
         newUserRef.setValue(userData);
         userId = newUserRef.getKey();
+        userData.put("userID", userId);
 
         Log.d(TAG, "USER ID IS: " + userId);
 

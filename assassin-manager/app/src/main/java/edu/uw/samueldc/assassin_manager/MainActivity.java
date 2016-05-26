@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 1:
                     return (new MapFragment()).newInstance(userData.get("room"));
                 case 2:
-                    return new MeFragment();
+                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"), userData.get("userID"));
 //                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 3:
                     return new TargetFragment();
