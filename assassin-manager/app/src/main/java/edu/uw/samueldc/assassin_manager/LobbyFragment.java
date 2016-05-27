@@ -103,11 +103,11 @@ public class LobbyFragment extends ListFragment {
                     ref.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-
+                            data.clear();
                             for (DataSnapshot child : dataSnapshot.getChildren()) {
                                 data.add(child.getValue().toString());
                             }
-                            userData.remove(userID);
+
                             userData.put(userID, data);
 //                            Log.v(TAG, "UserData List: " + userData);
                             Log.v(TAG,"Data List: "+data.toString());
