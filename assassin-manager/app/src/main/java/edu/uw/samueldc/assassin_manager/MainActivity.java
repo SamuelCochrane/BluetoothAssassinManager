@@ -6,12 +6,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,12 +27,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import org.altbeacon.beacon.Beacon;
 
@@ -33,7 +45,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements ServiceConnection, BeaconReceiver.OnBeaconReceivedListener {
+public class MainActivity extends AppCompatActivity implements ServiceConnection, BeaconReceiver.OnBeaconReceivedListener,GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
     static final int NUM_SCREEN = 4;
 
     private static final String TAG = "MainActivity";
@@ -46,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private String playerName;
     private static String roomName;
+    private static String userID;
 
     private boolean bound;
     private Collection<Beacon> beacons;
@@ -53,6 +67,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private BeaconReceiver receiver = null;
     private boolean isRegistered = false;
     private static HashMap<String, String> userData;
+
+    private Location curLocation;
+    Location originLocation;
+    private static Double originLat;
+    private static Double originLog;
+    LocationManager locationManager;
+    private final int PERMISSION_CODE = 1;
+
+
+    private GoogleApiClient myGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,12 +125,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         Bundle bundle = getIntent().getExtras();
         if (bundle != null && userData == null) {
             userData = (HashMap) bundle.getSerializable("userData");
+            userID = bundle.getString("userID");
         }
 
 
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+//        if (curLocation != null) {
+//            fireBaseRef.child("latitude").setValue(curLocation.getLatitude());
+//            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
+//        }
 
-        fireBaseRef.child("users/").addValueEventListener(new ValueEventListener() {
+        fireBaseRef.child("users/" + userID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.v(TAG, "users: " + dataSnapshot.getValue());
@@ -146,19 +175,68 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
 
         // Watch for button clicks.
-        Button button = (Button)findViewById(R.id.goto_first);
+        Button button = (Button) findViewById(R.id.goto_first);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 viewPager.setCurrentItem(0);
             }
         });
-        button = (Button)findViewById(R.id.goto_last);
+        button = (Button) findViewById(R.id.goto_last);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                viewPager.setCurrentItem(NUM_SCREEN-1);
+                viewPager.setCurrentItem(NUM_SCREEN - 1);
             }
         });
+
+
+        if (myGoogleApiClient == null) {
+            myGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+
+        }
+        originLocation = getLastKnownLocation();
+        originLat = originLocation.getLatitude();
+        originLog = originLocation.getLongitude();
+
     }
+
+    private Location getLastKnownLocation() {
+        locationManager = (LocationManager)MainActivity.this.getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            try {
+                Location l = locationManager.getLastKnownLocation(provider);
+                if (l == null) {
+                    continue;
+                }
+                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                    // Found best last known location: %s", l);
+                    bestLocation = l;
+                }
+            } catch (SecurityException e) {
+            }
+        }
+        Log.v(TAG,"Origin Location is: "+bestLocation.toString());
+        return bestLocation;
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        curLocation = location;
+
+        if (curLocation != null) {
+            fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+            fireBaseRef.child("latitude").setValue(curLocation.getLatitude());
+            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
+        }
+        Log.v(TAG, "Current Location: " + curLocation.getLatitude() + ", " + curLocation.getLongitude());
+    }
+
 
     // when received beacon list
     @Override
@@ -170,10 +248,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             // a list of beacons
             ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
             Log.d(TAG, "" + beacons.size());
-            for (Beacon beacon : beacons) {
-
-                Toast.makeText(this, "RECEIVED UNIQUE ID: " + beacon.getId2(), Toast.LENGTH_LONG).show();
-//                        Log.d(TAG, "============== RECEIVED UNIQUE ID: " + beacon.getId2());
+            for (Beacon beacon:beacons) {
+                List<Long> dataFields = beacon.getDataFields();
+                for (Long hashcode : dataFields) {
+                    Log.d(TAG, "NAME / ROOM HASHCODES: " + hashcode + "");
+                }
+//                Log.d(TAG, beacon.getDataFields());
             }
 
             // pass newly received beacon list to each fragment by calling their specified method
@@ -218,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        startService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStart();
+        myGoogleApiClient.connect();
     }
 
     @Override
@@ -225,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         stopService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStop();
+        myGoogleApiClient.disconnect();
     }
 
     @Override
@@ -275,9 +357,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 0:
                     return new LobbyFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 1:
-                    return (new MapFragment()).newInstance(userData.get("room"));
+                    return new MapFragment().newInstance(userData.get("room"),originLat.toString(),originLog.toString());
                 case 2:
-                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"), userData.get("userID"));
+                    return new MeFragment();
 //                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 3:
                     return new TargetFragment();
@@ -289,5 +371,46 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     public String getPlayerName() {
         return playerName;
+    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        // build GPS request
+        LocationRequest request = new LocationRequest();
+        request.setInterval(1000);
+        request.setFastestInterval(500);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        // check permission from the user
+        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, request, this);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_CODE);
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+    }
+
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permission[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_CODE:
+                // if have permission
+                if (permission.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    onConnected(null);
+                }
+        }
+        super.onRequestPermissionsResult(requestCode,permission,grantResults);
     }
 }
