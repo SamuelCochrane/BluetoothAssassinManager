@@ -204,7 +204,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     // TODO: EXTEND IT TO CHECK OTHER BEACONS -- NEED MORE DEVICES
                     Firebase fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                   /* fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 //                            dataSnapshot.getValue();
@@ -227,7 +227,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                         public void onCancelled(FirebaseError firebaseError) {
                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
                         }
-                    });
+                    });*/
 
                     // send collections of beacons as broadcast message to other activities
                     Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
