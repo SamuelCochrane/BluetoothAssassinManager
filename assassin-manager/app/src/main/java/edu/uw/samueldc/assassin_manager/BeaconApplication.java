@@ -98,9 +98,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
                 // reduce bluetooth power consumption by around 60%
                 backgroundPowerSaver = new BackgroundPowerSaver(context);
-
-                BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
-                ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
+//
+//                BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+//                ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
 
                 // ======== start advertising itself
 //                if (transmittedBeacon == null) {
@@ -148,7 +148,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             Log.d(TAG, "USER NAME HASH: " + userData.get("nameHash"));
             transmittedBeacon = new Beacon.Builder()
                     .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
-                    .setId2(userData.get("id2"))
+                    .setId2(userData.get("uniqueID"))
                     .setId3(userData.get("id3"))
                     .setManufacturer(0x0118)
                     .setTxPower(-59)
@@ -184,8 +184,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         }
 
     }
-
-
+    
     // TODO: WHY NOT RUN IN BACKGROUND??
     @Override
     public void onBeaconServiceConnect() {
@@ -193,16 +192,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 Log.d(TAG, "RECEIVE BEACON MESSAGE!!");
-//                Toast.makeText(context, "RECEIVE BEACON MESSAGE!!", Toast.LENGTH_SHORT).show();
                 if (beacons.size() > 0) {
 
-                    for (Beacon beacon : beacons) {
-                        List<Long> datafileds = beacon.getDataFields();
-                        for (Long data : datafileds) {
-                            Log.d(TAG, "RECEIVED BEACON HASH CODE: " + data);
-                        }
-//                        Log.d(TAG, "RECEIVED BEACON HASH CODE: " + beacon.getDataFields())
-                    }
+                    final Collection<Beacon> beaconList = beacons;
 
                     final String room = userData.get("room");
                     final String username = userData.get("name");
@@ -219,10 +211,15 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                            for (DataSnapshot child : dataSnapshot.getChildren()) {
 //                               Log.d(TAG, child.toString());
 //                               Log.d(TAG, child.child("name").getValue().toString());
-                               if (child.child("nameHash").getValue().toString().equalsIgnoreCase(nameHash)) {
-                                   Log.d(TAG, "========= FOUND YOURSELF");
-                                   sendNotification();
+                               for (Beacon beacon : beaconList) {
+
+                                   if (child.child("uniqueID").getValue().toString().equalsIgnoreCase(beacon.getId2().toString())) {
+                                       Log.d(TAG, "========= FOUND ONE PLAYER!!");
+                                       Log.d(TAG, "========= " + child.child("name").getValue().toString());
+//                                               sendNotification();
+                                   }
                                }
+
                            }
                         }
 
@@ -292,7 +289,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                         .setContentTitle("Beacon Reference Application")
                         .setContentText("An beacon is nearby.")
                         .setSmallIcon(R.drawable.cast_ic_notification_0)
-                        .setVibrate(new long[] {0, 500, 500, 500})
+//                        .setVibrate(new long[] {0, 500, 500, 500})
                         .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setVisibility(0);
