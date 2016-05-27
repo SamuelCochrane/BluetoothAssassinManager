@@ -1,6 +1,5 @@
 package edu.uw.samueldc.assassin_manager;
 
-import android.*;
 import android.annotation.TargetApi;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,6 +20,7 @@ import com.firebase.client.ValueEventListener;
 
 import org.altbeacon.beacon.BeaconManager;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +38,7 @@ public class EnterActivity extends AppCompatActivity {
     Button btnEnter;
 
     private String userId;
+    private long startTime;
 
     Firebase fireBaseRef;
     HashMap<String, String> userData;
@@ -63,7 +64,9 @@ public class EnterActivity extends AppCompatActivity {
 
                 // Add restrictions for username and room name here, if wanted
                 if(room.length() >= 4 && username.length() >= 3) {
-                    checkUserExistence(username, room);
+                    checkRoomExistence(username, room);
+
+
                 } else {
                     if (room.length() < 4) {
                         AlertDialog.Builder dialog = new AlertDialog.Builder(EnterActivity.this);
@@ -92,7 +95,7 @@ public class EnterActivity extends AppCompatActivity {
                                 }
                             });
                             dialog2.show();
-                    }
+                        }
 
                     }
                     else {
@@ -203,6 +206,62 @@ public class EnterActivity extends AppCompatActivity {
 
     }
 
+    private boolean roomExists;
+    public void checkRoomExistence(final String username, final String room) {
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/");
+        Log.v(TAG, "Checking Time");
+
+        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChild(room)) {
+//                    String time = dataSnapshot.child("timer").getValue().toString();
+                    Log.v(TAG, "Current Timer: " + dataSnapshot.child(room).child("timer").getValue());
+                    startTime = (long) dataSnapshot.child(room).child("timer").getValue();
+                    roomExists = true;
+
+
+                    if(Calendar.getInstance().getTimeInMillis() < startTime) {
+                        checkUserExistence(username, room);
+                    } else {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(EnterActivity.this);
+
+                        dialog.setCancelable(false);
+                        dialog.setIcon(R.drawable.login_icon);
+                        dialog.setTitle("Too late!");
+                        dialog.setMessage("A game with that room name has already begun.");
+                        dialog.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+                    }
+
+
+                } else {
+                    Calendar c = Calendar.getInstance();
+                    c.add(Calendar.MINUTE, 5);
+                    startTime = c.getTimeInMillis();
+
+                    Log.v(TAG, "setting the current time: " + startTime);
+                    Log.v(TAG, "It is: " + Calendar.getInstance().getTimeInMillis());
+                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
+                    fireBaseRef.child(room + "/timer").setValue(startTime);
+                    roomExists = false;
+                    checkUserExistence(username, room);
+                }
+
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+    }
+
     private boolean playerExists;
     public void checkUserExistence(final String username, final String room) {
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
@@ -237,8 +296,10 @@ public class EnterActivity extends AppCompatActivity {
                     user.put("name", username);
                     user.put("nameHash", Integer.toString(username.hashCode()));
 
+
                     // Add user to list of users, and get userID
                     String userID = createNewUser(username, room);
+
 
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
                     fireBaseRef.child(room + "/users/" + userID).setValue(user);
@@ -249,9 +310,11 @@ public class EnterActivity extends AppCompatActivity {
                     Log.d(TAG, "player name: " + playerName);
                     String roomName = etRoomName.getText().toString();
 
-                    Intent intent = new Intent(EnterActivity.this, MainActivity.class);
+                    Intent intent = new Intent(EnterActivity.this, TimerActivity.class);
                     Bundle bundle = new Bundle();
+                    bundle.putString("userID", userID);
                     bundle.putSerializable("userData", userData);
+                    bundle.putLong("startTime", startTime);
                     intent.putExtras(bundle);
 
                     startActivity(intent);

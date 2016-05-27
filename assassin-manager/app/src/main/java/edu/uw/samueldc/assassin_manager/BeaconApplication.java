@@ -1,13 +1,9 @@
 package edu.uw.samueldc.assassin_manager;
 
-import android.app.ActivityManager;
-import android.app.Application;
-import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,7 +15,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -221,7 +216,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 //                               Log.d(TAG, child.child("name").getValue().toString());
                                if (child.child("nameHash").getValue().toString().equalsIgnoreCase(nameHash)) {
                                    Log.d(TAG, "========= FOUND YOURSELF");
-                                   sendNotification();
+//                                   sendNotification();
                                }
                            }
                         }
