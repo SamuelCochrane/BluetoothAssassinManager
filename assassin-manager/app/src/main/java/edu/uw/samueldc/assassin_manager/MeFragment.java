@@ -81,9 +81,12 @@ public class MeFragment extends Fragment {
 
                 Log.i(TAG,"Data List: "+data.toString());
 
-                String kills = data.get(2);
-                String status = data.get(9);
-                set(kills, status);
+                if (data.size() != 0) {
+                    String kills = data.get(2);
+                    String status = data.get(9);
+                    set(kills, status);
+                }
+
 
             }
             @Override
