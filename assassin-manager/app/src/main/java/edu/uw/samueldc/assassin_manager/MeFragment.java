@@ -19,6 +19,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,11 +39,12 @@ public class MeFragment extends Fragment {
 
 
 
-    public static MeFragment newInstance(String name, String room) {
+    public static MeFragment newInstance(String name, String room, String id) {
         MeFragment fragment = new MeFragment();
         Bundle args = new Bundle();
         args.putString("name", name);
         args.putString("room", room);
+        args.putString("playerID", id);
         fragment.setArguments(args);
         return fragment;
     }
@@ -53,6 +55,7 @@ public class MeFragment extends Fragment {
         if (getArguments() != null) {
             playerName = getArguments().getString("name");
             playerRoom = getArguments().getString("room");
+            playerID = getArguments().getString("playerID");
         }
     }
 
@@ -65,29 +68,28 @@ public class MeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_me, container, false);
+        Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
+        final ArrayList<String> data = new ArrayList<String>();
 
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
-        fireBaseRef.addValueEventListener(new ValueEventListener() {
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "Starting data gather...");
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    if (child.child("name").getValue().toString().equalsIgnoreCase(playerName)) {
-                        //found our player
-                        String kills = child.child("kills").getValue().toString();
-                        String status = child.child("status").getValue().toString();
-                        set(kills, status);
-                    }
-
+                    data.add(child.getValue().toString());
                 }
 
+                Log.i(TAG,"Data List: "+data.toString());
 
+                String kills = data.get(2);
+                String status = data.get(9);
+                set(kills, status);
 
             }
             @Override
-            public void onCancelled (FirebaseError firebaseError){
+            public void onCancelled(FirebaseError firebaseError) {
                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
             }
-
         });
 
         return v;

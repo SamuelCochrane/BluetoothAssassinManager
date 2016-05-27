@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -169,12 +170,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             // a list of beacons
             ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
             Log.d(TAG, "" + beacons.size());
-            for (Beacon beacon:beacons) {
-                List<Long> dataFields = beacon.getDataFields();
-                for (Long hashcode : dataFields) {
-                    Log.d(TAG, "NAME / ROOM HASHCODES: " + hashcode + "");
-                }
-//                Log.d(TAG, beacon.getDataFields());
+            for (Beacon beacon : beacons) {
+//                        List<Long> datafileds = beacon.getDataFields();
+//                        if (datafileds != null) {
+//                            for (Long data : datafileds) {
+//                                Log.d(TAG, "RECEIVED BEACON HASH CODE: " + data);
+//                            }
+//                        }
+                Toast.makeText(this, "RECEIVED UNIQUE ID: " + beacon.getId2(), Toast.LENGTH_LONG).show();
+//                        Log.d(TAG, "============== RECEIVED UNIQUE ID: " + beacon.getId2());
+
+//                        Log.d(TAG, "RECEIVED BEACON HASH CODE: " + beacon.getDataFields())
             }
 
             // pass newly received beacon list to each fragment by calling their specified method
@@ -278,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case 1:
                     return (new MapFragment()).newInstance(userData.get("room"));
                 case 2:
-                    return new MeFragment();
+                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"), userData.get("userID"));
 //                    return new MeFragment().newInstance(userData.get("name"),userData.get("room"));
                 case 3:
                     return new TargetFragment();

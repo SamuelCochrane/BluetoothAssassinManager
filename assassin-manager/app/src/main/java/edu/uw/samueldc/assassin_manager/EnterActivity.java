@@ -269,6 +269,7 @@ public class EnterActivity extends AppCompatActivity {
         fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer uniqueID = (int) dataSnapshot.getChildrenCount() + 1;
                 for(DataSnapshot child : dataSnapshot.getChildren()) {
                     if(child.child("name").getValue().toString().equalsIgnoreCase(username)) {
                         Log.v(TAG, "Setting PlayerExistence to True");
@@ -295,11 +296,10 @@ public class EnterActivity extends AppCompatActivity {
                     Map<String, Object> user = new HashMap<String, Object>();
                     user.put("name", username);
                     user.put("nameHash", Integer.toString(username.hashCode()));
-
+                    user.put("uniqueID", uniqueID);
 
                     // Add user to list of users, and get userID
-                    String userID = createNewUser(username, room);
-
+                    String userID = createNewUser(username, room, uniqueID);
 
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
                     fireBaseRef.child(room + "/users/" + userID).setValue(user);
@@ -310,7 +310,7 @@ public class EnterActivity extends AppCompatActivity {
                     Log.d(TAG, "player name: " + playerName);
                     String roomName = etRoomName.getText().toString();
 
-                    Intent intent = new Intent(EnterActivity.this, TimerActivity.class);
+                    Intent intent = new Intent(EnterActivity.this, MainActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("userID", userID);
                     bundle.putSerializable("userData", userData);
@@ -332,7 +332,7 @@ public class EnterActivity extends AppCompatActivity {
 
     }
 
-    public String createNewUser(String username, String room) {
+    public String createNewUser(String username, String room, Integer uniqueID) {
         Log.v(TAG, "Creating new User!");
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
@@ -341,7 +341,8 @@ public class EnterActivity extends AppCompatActivity {
         userData = new HashMap<String, String>();
         userData.put("name", username);
         userData.put("id2", "1");
-        userData.put("id3", "77");
+        userData.put("id3", "255");
+        userData.put("uniqueID", uniqueID.toString());
         userData.put("room", room);
         userData.put("nameHash", Integer.toString(username.hashCode()));
         userData.put("roomHash", Integer.toString(room.hashCode()));
@@ -351,15 +352,16 @@ public class EnterActivity extends AppCompatActivity {
         userData.put("status", "alive");
         userData.put("target", "");
 
+
         // Add user to users list, with unique ID
         Firebase newUserRef = fireBaseRef.push();
         newUserRef.setValue(userData);
         userId = newUserRef.getKey();
+        userData.put("userID", userId);
 
         Log.d(TAG, "USER ID IS: " + userId);
 
         return userId;
     }
-
 
 }

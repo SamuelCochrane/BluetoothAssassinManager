@@ -133,9 +133,6 @@ public class MapFragment extends Fragment {
 
                             }
 
-//                            Log.v(TAG,"Data List: "+data.toString());
-
-
                         @Override
                         public void onCancelled(FirebaseError firebaseError) {
 
