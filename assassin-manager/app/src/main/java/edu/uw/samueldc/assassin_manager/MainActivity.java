@@ -171,16 +171,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
             Log.d(TAG, "" + beacons.size());
             for (Beacon beacon : beacons) {
-//                        List<Long> datafileds = beacon.getDataFields();
-//                        if (datafileds != null) {
-//                            for (Long data : datafileds) {
-//                                Log.d(TAG, "RECEIVED BEACON HASH CODE: " + data);
-//                            }
-//                        }
+
                 Toast.makeText(this, "RECEIVED UNIQUE ID: " + beacon.getId2(), Toast.LENGTH_LONG).show();
 //                        Log.d(TAG, "============== RECEIVED UNIQUE ID: " + beacon.getId2());
-
-//                        Log.d(TAG, "RECEIVED BEACON HASH CODE: " + beacon.getDataFields())
             }
 
             // pass newly received beacon list to each fragment by calling their specified method

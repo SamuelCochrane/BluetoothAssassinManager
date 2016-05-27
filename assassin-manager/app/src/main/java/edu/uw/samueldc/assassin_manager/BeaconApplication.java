@@ -65,6 +65,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     private Beacon transmittedBeacon;
     private boolean isRunning = false;
 
+    public Beacon hunter;
+    public Beacon prey;
+
     HashMap<String, String> userData = null;
 
     /**
@@ -204,7 +207,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     // TODO: EXTEND IT TO CHECK OTHER BEACONS -- NEED MORE DEVICES
                     Firebase fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-                   /* fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                   fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 //                            dataSnapshot.getValue();
@@ -213,6 +216,24 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 //                               Log.d(TAG, child.child("name").getValue().toString());
                                for (Beacon beacon : beaconList) {
 
+                                   if (Integer.valueOf(2).toString().equalsIgnoreCase(beacon.getId2().toString())) {
+                                       if (hunter == null) {
+                                           Log.d(TAG, "========= FOUND HUNTER!!");
+                                           Log.d(TAG, "========= " + child.child("name").getValue().toString());
+                                           sendNotification();
+                                       }
+                                       // we need update hunter and prey automatically
+                                       hunter = beacon;
+                                   }
+
+                                   if (Integer.valueOf(3).toString().equalsIgnoreCase(beacon.getId2().toString())) {
+                                       if (prey == null) {
+                                           Log.d(TAG, "========= FOUND PREY!!!");
+                                           Log.d(TAG, "========= " + child.child("name").getValue().toString());
+                                           sendNotification();
+                                       }
+                                       prey = beacon;
+                                   }
                                    if (child.child("uniqueID").getValue().toString().equalsIgnoreCase(beacon.getId2().toString())) {
                                        Log.d(TAG, "========= FOUND ONE PLAYER!!");
                                        Log.d(TAG, "========= " + child.child("name").getValue().toString());
@@ -227,7 +248,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                         public void onCancelled(FirebaseError firebaseError) {
                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
                         }
-                    });*/
+                    });
 
                     // send collections of beacons as broadcast message to other activities
                     Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
@@ -287,7 +308,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
                         .setContentTitle("Beacon Reference Application")
-                        .setContentText("An beacon is nearby.")
+                        .setContentText("A HUNTER is nearby.")
                         .setSmallIcon(R.drawable.cast_ic_notification_0)
 //                        .setVibrate(new long[] {0, 500, 500, 500})
                         .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
