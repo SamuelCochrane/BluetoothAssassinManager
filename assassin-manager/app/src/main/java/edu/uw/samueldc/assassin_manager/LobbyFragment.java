@@ -95,7 +95,7 @@ public class LobbyFragment extends ListFragment {
                     roomUsers.add(child.getKey());
                 }
 
-                Log.i(TAG, "List: " + roomUsers.toString());
+//                Log.i(TAG, "List: " + roomUsers.toString());
                 for (final String userID : roomUsers) {
                     Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
                     Log.i(TAG, "UserID data: " + ref.getKey());
@@ -110,7 +110,7 @@ public class LobbyFragment extends ListFragment {
 
                             userData.put(userID, data);
 //                            Log.v(TAG, "UserData List: " + userData);
-                            Log.v(TAG,"Data List: "+data.toString());
+//                            Log.v(TAG,"Data List: "+data.toString());
 
                             updateReferences();
 
@@ -162,20 +162,20 @@ public class LobbyFragment extends ListFragment {
 
         for(String s : userData.keySet()) {
             ArrayList<String> data = (ArrayList<String>)userData.get(s);
-            Log.i(TAG, "---DATA: " + data);
+//            Log.i(TAG, "---DATA: " + data);
 
 
 
             String name = data.get(5).toString();
-            Log.i(TAG, "---NAME: " + name);
+//            Log.i(TAG, "---NAME: " + name);
             namesArrayList.add(name);
 
             String status =  data.get(9);
-            Log.i(TAG, "---STATUS: " + status);
+//            Log.i(TAG, "---STATUS: " + status);
             statusArrayList.add(status);
 
             String kill = data.get(2);
-            Log.i(TAG, "---KILLS: " + kill);
+//            Log.i(TAG, "---KILLS: " + kill);
             killsArrayList.add(kill);
         }
 

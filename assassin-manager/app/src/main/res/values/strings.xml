@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Timer Screen -->
-    <string name="timer_notice">Your game will begin at the below time. Please have any other players join this same room, before the game starts. If they join after the below time, they will not be added to the game.</string>
+    <string name="timer_notice">Please have any other players join this same room, before the game starts. If they join after the below time, they will not be added to the game.</string>
 
     <!--Lobby Screen-->
     <string name="lobby_tag_status">Status</string>
