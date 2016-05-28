@@ -98,19 +98,24 @@ public class LobbyFragment extends ListFragment {
                 Log.i(TAG, "List: " + roomUsers.toString());
                 for (final String userID : roomUsers) {
                     Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-                    Log.i(TAG, "UserID data: " + ref.getKey());
-                    final ArrayList<String> data = new ArrayList<String>();
+
+                    final HashMap<String, String> data = new HashMap<String, String>();
+                    Log.i(TAG, "UserID: " + ref.getKey());
+
+
                     ref.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             data.clear();
                             for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                data.add(child.getValue().toString());
+                                data.put(child.getKey().toString(), child.getValue().toString());
                             }
+
+                            Log.v(TAG, "Data: " + data);
 
                             userData.put(userID, data);
 //                            Log.v(TAG, "UserData List: " + userData);
-                            Log.v(TAG,"Data List: "+data.toString());
+//                            Log.v(TAG,"Data List: "+data.toString());
 
                             updateReferences();
 
@@ -131,7 +136,7 @@ public class LobbyFragment extends ListFragment {
                 updateReferences();
 
                 setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
-                names, status, kills, null)); //null -> TypedArray icons
+                        names, status, kills, null)); //null -> TypedArray icons
 
 
 
@@ -161,21 +166,21 @@ public class LobbyFragment extends ListFragment {
         ArrayList<String> killsArrayList = new ArrayList<String>();
 
         for(String s : userData.keySet()) {
-            ArrayList<String> data = (ArrayList<String>)userData.get(s);
+            HashMap<String, String> data = (HashMap<String, String>)userData.get(s);
             Log.i(TAG, "---DATA: " + data);
 
 
 
-            String name = data.get(5).toString();
-            Log.i(TAG, "---NAME: " + name);
+            String name = data.get("name").toString();
+//            Log.i(TAG, "---NAME: " + name);
             namesArrayList.add(name);
 
-            String status =  data.get(9);
-            Log.i(TAG, "---STATUS: " + status);
+            String status =  data.get("status");
+//            Log.i(TAG, "---STATUS: " + status);
             statusArrayList.add(status);
 
-            String kill = data.get(2);
-            Log.i(TAG, "---KILLS: " + kill);
+            String kill = data.get("kills");
+//            Log.i(TAG, "---KILLS: " + kill);
             killsArrayList.add(kill);
         }
 
@@ -291,5 +296,3 @@ public class LobbyFragment extends ListFragment {
         }
     }
 }
-
-

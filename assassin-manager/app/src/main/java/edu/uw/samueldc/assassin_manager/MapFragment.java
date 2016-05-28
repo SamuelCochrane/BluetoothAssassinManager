@@ -121,7 +121,7 @@ public class MapFragment extends Fragment {
                               Double longitude = Double.parseDouble(dataSnapshot.child("longitude").getValue().toString());
                               LatLng location = new LatLng(latitude, longitude);
 
-                              Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
+//                              Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
 
                               marker.setPosition(location);
                               marker.setTitle(dataSnapshot.child("name").getValue().toString());
