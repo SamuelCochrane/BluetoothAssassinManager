@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -22,9 +24,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private static Double originLog;
     LocationManager locationManager;
     private final int PERMISSION_CODE = 1;
+    private int mThemeId = -1;
 
 
     private GoogleApiClient myGoogleApiClient;
@@ -83,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         super.onCreate(savedInstanceState);
         Firebase.setAndroidContext(this);
         setContentView(R.layout.activity_main);
+
+
+    //    nightMode(MainActivity.this);
 
         // ============= deal with toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -333,6 +341,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.miSettings) {
+            Log.v(TAG, "Start settings");
+            Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
 
     }
@@ -415,4 +435,21 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
         super.onRequestPermissionsResult(requestCode,permission,grantResults);
     }
-}
+
+    public void nightMode(Context context) {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // determine switch to night mode or not
+        boolean nightMode = prefs.getBoolean("pref_night",true);
+        if (nightMode) {
+            mThemeId = R.style.AppTheme_Night;
+//            this.setTheme(mThemeId);
+//            this.recreate();
+        } else {
+            mThemeId = R.style.AppTheme_Daylight;
+//            this.setTheme(mThemeId);
+//            this.recreate();
+        }
+        }
+    }

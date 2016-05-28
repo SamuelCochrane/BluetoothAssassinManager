@@ -34,6 +34,7 @@
             android:enabled="true" />
 
         <activity android:name=".TimerActivity"></activity>
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>
