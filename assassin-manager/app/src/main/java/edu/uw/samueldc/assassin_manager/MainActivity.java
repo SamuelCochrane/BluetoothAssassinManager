@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (bundle != null && userData == null) {
             userData = (HashMap) bundle.getSerializable("userData");
             userID = bundle.getString("userID");
+            Log.d(TAG, "========== USER ID: " + userID);
         }
 
 
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         fireBaseRef.child("users/" + userID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.v(TAG, "users: " + dataSnapshot.getValue());
+
             }
 
             @Override

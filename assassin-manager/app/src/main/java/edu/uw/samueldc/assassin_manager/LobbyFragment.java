@@ -46,7 +46,7 @@ public class LobbyFragment extends ListFragment {
     public LobbyFragment() {
         // Required empty public constructor
     }
-    
+
     public void receivedBeacons(Collection<Beacon> beacons) {
 
     }
@@ -107,7 +107,7 @@ public class LobbyFragment extends ListFragment {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             data.clear();
                             for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                data.put(child.getKey().toString(), child.getValue().toString());
+                                data.put(child.getKey(), child.getValue().toString());
                             }
 
                             Log.v(TAG, "Data: " + data);

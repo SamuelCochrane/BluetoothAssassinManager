@@ -30,9 +30,6 @@ public class MeFragment extends Fragment {
     TextView tvScore;
     TextView tvStatus;
 
-
-
-
     public static MeFragment newInstance(String name, String room, String id) {
         MeFragment fragment = new MeFragment();
         Bundle args = new Bundle();
@@ -62,25 +59,28 @@ public class MeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_me, container, false);
+
         Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
         final ArrayList<String> data = new ArrayList<String>();
 
-        ref.addValueEventListener(new ValueEventListener() {
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.i(TAG, "Starting data gather...");
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    data.add(child.getValue().toString());
-                }
+                Log.d(TAG, "========== USER INFO: " + dataSnapshot.toString());
+                String kills = dataSnapshot.child("kills").getValue().toString();
+                String status = dataSnapshot.child("status").getValue().toString();
 
-                Log.i(TAG,"Data List: "+data.toString());
+                tvName = (TextView) getView().findViewById(R.id.myName);
+                tvScore = (TextView) getView().findViewById(R.id.myScore);
+                tvStatus = (TextView) getView().findViewById(R.id.myStatus);
 
-                if (data.size() != 0) {
-                    String kills = data.get(2);
-                    String status = data.get(9);
-                    set(kills, status);
-                }
+                playerScore = kills;
+                playerStatus = status;
 
+                tvName.setText(playerName);
+                tvStatus.setText(status);
+                tvScore.setText(kills);
 
             }
             @Override
@@ -90,23 +90,6 @@ public class MeFragment extends Fragment {
         });
 
         return v;
-    }
-
-
-    private void set(String kills, String status) {
-        if(tvName == null) {
-            tvName = (TextView) getView().findViewById(R.id.myName);
-            tvScore = (TextView) getView().findViewById(R.id.myScore);
-            tvStatus = (TextView) getView().findViewById(R.id.myStatus);
-        }
-        playerScore = kills;
-        playerStatus = status;
-
-
-        tvName.setText(playerName);
-        tvStatus.setText(status);
-        tvScore.setText(kills);
-
     }
 
     @Override

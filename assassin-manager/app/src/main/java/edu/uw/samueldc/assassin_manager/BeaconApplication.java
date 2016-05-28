@@ -240,7 +240,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         data.clear();
                                         for (DataSnapshot child : dataSnapshot.getChildren()) {
-//                               Log.d(TAG, child.toString());
+                               Log.d(TAG, child.toString());
 //                               Log.d(TAG, child.child("name").getValue().toString());
                                             for (Beacon beacon : beaconList) {
 
