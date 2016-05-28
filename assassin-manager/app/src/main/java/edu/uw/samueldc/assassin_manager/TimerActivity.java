@@ -28,7 +28,8 @@ public class TimerActivity extends AppCompatActivity {
     private String userID, room;
     private long startTime;
 
-    Timer timer;
+    static Timer timer;
+    static TimerTask task;
 
 
     @Override
@@ -46,15 +47,29 @@ public class TimerActivity extends AppCompatActivity {
             room = bundle.getString("room");
         }
 
+        adjustUsers();
+
 
         timer = new Timer();
-        timer.schedule(new TimerTask(bundle), 0, 1000);
+        task = new TimerTask(bundle);
+        timer.schedule(task, 0, 1000);
+
+
+
 
 
         Button start = (Button) findViewById(R.id.btnStart);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+
+                Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
+
+                fireBaseRef.child("timer").setValue("0");
+
+                startTime = 0;
+
                 // Make sure you don't have some async issue here
                 Intent intent = new Intent(TimerActivity.this, MainActivity.class);
                 Bundle mainBundle = new Bundle();
@@ -63,16 +78,41 @@ public class TimerActivity extends AppCompatActivity {
                 mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
                 intent.putExtras(bundle);
 
-                startActivity(intent);
+                fireBaseRef.removeEventListener(listener);
+
+
+
+                task.cancel();
                 timer.cancel();
+                timer = null;
+
+
+                startActivity(intent);
+
             }
         });
 
 
     }
 
-    public void checkTime() {
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(timer != null)
+            timer.cancel();
+    }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(timer != null)
+            timer.cancel();
     }
 
     public void adjustTargets() {
@@ -86,6 +126,8 @@ public class TimerActivity extends AppCompatActivity {
         for(String s : userData.keySet()) {
 
             HashMap<String, String> data = (HashMap<String, String>) userData.get(s);
+            Log.v(TAG, "current userData: " + userData.get(s));
+            Log.v(TAG, "timerAct data: " + data);
 
             // target is index 10
             if(firstID.length() > 0) {
@@ -106,11 +148,13 @@ public class TimerActivity extends AppCompatActivity {
 
     }
 
+    private ValueEventListener listener;
+
     // Updates userData variable to hold info for all current users
     public void adjustUsers() {
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-        fireBaseRef.addValueEventListener(new ValueEventListener() {
+        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // New User is added, set last users target to current target
@@ -120,10 +164,14 @@ public class TimerActivity extends AppCompatActivity {
                     roomUsers.add(child.getKey());
                 }
 
+                Log.v(TAG, "Users in room: " + roomUsers);
+
                 for (final String userID : roomUsers) {
-                    Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
                     final HashMap<String, String> data = new HashMap<String, String>();
-                    ref.addValueEventListener(new ValueEventListener() {
+
+
+                    listener = new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             data.clear();
@@ -142,7 +190,10 @@ public class TimerActivity extends AppCompatActivity {
                         public void onCancelled(FirebaseError firebaseError) {
                             Log.e(TAG, "Error when accessing DB: " + firebaseError);
                         }
-                    });
+                    };
+
+                    fireBaseRef.addListenerForSingleValueEvent(listener);
+
                 }
 
             }
@@ -163,40 +214,59 @@ public class TimerActivity extends AppCompatActivity {
             bundle = b;
         }
 
+
+
+
         @Override
         public void run() {
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Calendar c = Calendar.getInstance();
-                    if(c.getTimeInMillis() < startTime) {
-                        adjustUsers();
+            if(timer != null) {
+                final Calendar c = Calendar.getInstance();
 
-                        TextView clock = (TextView) findViewById(R.id.time);
+                if (c.getTimeInMillis() < startTime) {
 
-                        String time = String.format("%02d:%02d",
-                                TimeUnit.MILLISECONDS.toMinutes(startTime - c.getTimeInMillis()),
-                                TimeUnit.MILLISECONDS.toSeconds(startTime - c.getTimeInMillis()) -
-                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(startTime - c.getTimeInMillis()))
-                        );
+//                    adjustUsers();
 
-                        clock.setText(time);
 
-                    } else {
-                        // Make sure you don't have some async issue here
-                        Intent intent = new Intent(TimerActivity.this, MainActivity.class);
-                        Bundle mainBundle = new Bundle();
-                        mainBundle.putString("userID", userID);
-                        mainBundle.putString("room", room);
-                        mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
-                        intent.putExtras(bundle);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
 
-                        startActivity(intent);
-                        timer.cancel();
-                    }
+                            TextView clock = (TextView) findViewById(R.id.time);
+
+
+                            String time = String.format("%02d:%02d",
+                                    TimeUnit.MILLISECONDS.toMinutes(startTime - c.getTimeInMillis()),
+                                    TimeUnit.MILLISECONDS.toSeconds(startTime - c.getTimeInMillis()) -
+                                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(startTime - c.getTimeInMillis()))
+                            );
+
+                            clock.setText(time);
+
+
+                        }
+                    });
+
+
+                } else {
+                    // Make sure you don't have some async issue here
+                    Intent intent = new Intent(TimerActivity.this, MainActivity.class);
+                    Bundle mainBundle = new Bundle();
+                    mainBundle.putString("userID", userID);
+                    mainBundle.putString("room", room);
+                    mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
+                    intent.putExtras(bundle);
+
+                    fireBaseRef.removeEventListener(listener);
+
+                    task.cancel();
+                    timer.cancel();
+                    timer = null;
+
+                    startActivity(intent);
+
                 }
-            });
+            }
 
 
         }

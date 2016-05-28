@@ -240,7 +240,7 @@ public class EnterActivity extends AppCompatActivity {
 
                 } else {
                     Calendar c = Calendar.getInstance();
-                    c.add(Calendar.MINUTE, 1);
+                    c.add(Calendar.MINUTE, 5);
                     startTime = c.getTimeInMillis();
 
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms");
