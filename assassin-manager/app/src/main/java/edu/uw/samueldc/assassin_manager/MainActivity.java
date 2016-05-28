@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private static String userID;
 
     private boolean bound;
-    private Collection<Beacon> beacons;
+    private HashMap<String, Beacon> beacons;
 
     private BeaconReceiver receiver = null;
     private boolean isRegistered = false;
@@ -245,15 +245,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // if receive beacons, try to get extras
         if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
 //                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
-            // a list of beacons
-            ArrayList<Beacon> beacons = intent.getParcelableArrayListExtra("beacons");
+            // a map of hunter and target
+            Bundle bundle = this.getIntent().getExtras();
+            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
             Log.d(TAG, "" + beacons.size());
-            for (Beacon beacon:beacons) {
-                List<Long> dataFields = beacon.getDataFields();
-                for (Long hashcode : dataFields) {
-                    Log.d(TAG, "NAME / ROOM HASHCODES: " + hashcode + "");
+            if (beacons != null) {
+                if (beacons.get("target") != null) {
+                    Log.d(TAG, "============ YOUR TARGET: " + beacons.get("target").toString());
                 }
-//                Log.d(TAG, beacon.getDataFields());
+                if (beacons.get("hunter") != null) {
+                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
+                }
             }
 
             // pass newly received beacon list to each fragment by calling their specified method

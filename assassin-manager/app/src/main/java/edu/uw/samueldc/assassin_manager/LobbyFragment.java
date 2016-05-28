@@ -46,8 +46,7 @@ public class LobbyFragment extends ListFragment {
     public LobbyFragment() {
         // Required empty public constructor
     }
-
-
+    
     public void receivedBeacons(Collection<Beacon> beacons) {
 
     }
@@ -119,10 +118,13 @@ public class LobbyFragment extends ListFragment {
 
                             updateReferences();
 
-                            if(names != null) {
-                                setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
-                                        names, status, kills, null)); //null -> TypedArray icons
+                            if (getActivity() != null) {
+                                if(names != null) {
+                                    setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
+                                            names, status, kills, null)); //null -> TypedArray icons
+                                }
                             }
+
                         }
                         @Override
                         public void onCancelled(FirebaseError firebaseError) {
@@ -239,6 +241,7 @@ public class LobbyFragment extends ListFragment {
 
         public ImageAndTextAdapter(Context ctx, int viewResourceId,
                                    String[] names, String[] status, String[] kills, TypedArray icons) {
+
             super(ctx, viewResourceId, names);
 
             mInflater = (LayoutInflater) ctx.getSystemService(

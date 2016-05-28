@@ -54,6 +54,7 @@ public class MapFragment extends Fragment {
         return fragment;
     }
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,16 +124,19 @@ public class MapFragment extends Fragment {
 
 //                              Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
 
-                              marker.setPosition(location);
-                              marker.setTitle(dataSnapshot.child("name").getValue().toString());
-                              if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
-                                  //    if (marker != null) marker.remove();
-                                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
+                              if (getActivity() != null) {
+                                  marker.setPosition(location);
+                                  marker.setTitle(dataSnapshot.child("name").getValue().toString());
+                                  if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
+                                      //    if (marker != null) marker.remove();
+                                      marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
 
-                              } else {
-                                  //   if (marker != null) marker.remove();
-                                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_dead)));
+                                  } else {
+                                      //   if (marker != null) marker.remove();
+                                      marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_dead)));
+                                  }
                               }
+
 
                           }
 

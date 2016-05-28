@@ -216,7 +216,7 @@ public class EnterActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.hasChild(room)) {
 //                    String time = dataSnapshot.child("timer").getValue().toString();
-                    startTime = (long) dataSnapshot.child(room).child("timer").getValue();
+                    startTime = Long.valueOf(dataSnapshot.child(room).child("timer").getValue().toString());
                     roomExists = true;
 
 
@@ -338,7 +338,7 @@ public class EnterActivity extends AppCompatActivity {
 
         userData = new HashMap<String, String>();
         userData.put("name", username);
-        userData.put("id2", "1");
+        userData.put("id2", uniqueID.toString()); // set id2 as the uniqueID which beacon device can fetch
         userData.put("id3", "255");
         userData.put("uniqueID", uniqueID.toString());
         userData.put("room", room);

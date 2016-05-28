@@ -12,6 +12,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.firebase.client.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -24,7 +25,7 @@ public class TimerActivity extends AppCompatActivity {
     private static final String TAG = "***TimerActivity***";
 
     private Firebase fireBaseRef;
-    private HashMap<String, Object> userData;
+    private HashMap<String, HashMap<String, String>> userData;
     private String userID, room;
     private long startTime;
 
@@ -37,7 +38,7 @@ public class TimerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer);
 
-        userData = new HashMap<String, Object>();
+        userData = new HashMap<String, HashMap<String, String>>();
 
         final Bundle bundle = getIntent().getExtras();
         if(bundle != null) {
@@ -59,6 +60,7 @@ public class TimerActivity extends AppCompatActivity {
 
 
         Button start = (Button) findViewById(R.id.btnStart);
+
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,29 +123,34 @@ public class TimerActivity extends AppCompatActivity {
 
         String previousID = "";
         String firstID = "";
+        String firstUserID = "";
 
 
         for(String s : userData.keySet()) {
 
-            HashMap<String, String> data = (HashMap<String, String>) userData.get(s);
+            HashMap<String, String> data = userData.get(s);
+            Log.d(TAG, "============= DATA FROM USER ID: " + data);
+            String uniqueID = data.get("uniqueID"); // get uniqueID of this user in this room
             Log.v(TAG, "current userData: " + userData.get(s));
             Log.v(TAG, "timerAct data: " + data);
 
             // target is index 10
             if(firstID.length() > 0) {
+
                 data.put("target", previousID);
                 fireBaseRef.child(s).setValue(data);
             } else {
-                firstID = s;
+                firstID = uniqueID;
+                firstUserID = s;
             }
-            previousID = s;
+            previousID = uniqueID;
 
         }
 
         //fence post, set first player's target to last player.
-        HashMap<String, String> data = (HashMap<String, String>) userData.get(firstID);
+        HashMap<String, String> data = userData.get(firstUserID);
         data.put("target", previousID);
-        fireBaseRef.child(firstID).setValue(data);
+        fireBaseRef.child(firstUserID).setValue(data);
 
 
     }
@@ -176,7 +183,7 @@ public class TimerActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             data.clear();
                             for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                data.put(child.getKey().toString(), child.getValue().toString());
+                                data.put(child.getKey(), child.getValue().toString());
                             }
 
                             userData.put(userID, data);
