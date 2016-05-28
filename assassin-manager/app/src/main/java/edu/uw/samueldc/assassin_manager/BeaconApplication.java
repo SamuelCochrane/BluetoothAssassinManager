@@ -187,8 +187,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         }
 
     }
-    
-    // TODO: WHY NOT RUN IN BACKGROUND??
+
     @Override
     public void onBeaconServiceConnect() {
         beaconManager.setRangeNotifier(new RangeNotifier() {
@@ -204,13 +203,14 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     final String nameHash = userData.get("nameHash");
 
                     // ========= check if one of those beacons is hunter or prey <------ check itself for testing right now
-                    // TODO: EXTEND IT TO CHECK OTHER BEACONS -- NEED MORE DEVICES
                     Firebase fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
+                    // TODO: ADD HUNTER AND PREY CHECKING FROM DB
                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 //                            dataSnapshot.getValue();
+
                            for (DataSnapshot child : dataSnapshot.getChildren()) {
 //                               Log.d(TAG, child.toString());
 //                               Log.d(TAG, child.child("name").getValue().toString());

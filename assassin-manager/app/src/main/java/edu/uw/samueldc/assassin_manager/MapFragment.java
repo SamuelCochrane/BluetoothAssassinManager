@@ -111,38 +111,30 @@ public class MapFragment extends Fragment {
                     markerOptions.position(point);
                     marker = map.addMarker(markerOptions);
 
-                    final ArrayList<String> data = new ArrayList<String>();
+//                    final ArrayList<String> data = new ArrayList<String>();
 
                     fireBaseRef.addValueEventListener(new ValueEventListener() {
                       @Override
                       public void onDataChange(DataSnapshot dataSnapshot) {
+                          if (dataSnapshot.child("longitude").getValue() != null) {
+                              Double latitude = Double.parseDouble(dataSnapshot.child("latitude").getValue().toString());
+                              Double longitude = Double.parseDouble(dataSnapshot.child("longitude").getValue().toString());
+                              LatLng location = new LatLng(latitude, longitude);
 
-                          for (DataSnapshot child : dataSnapshot.getChildren()) {
-                              data.add(child.getValue().toString());
-                          }
+                              Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
 
-                          Log.v(TAG, "The data list: " + data.toString());
-
-                          Double latitude = Double.parseDouble(data.get(3));
-                          Double longitude = Double.parseDouble(data.get(4));
-                          LatLng location = new LatLng(latitude, longitude);
-
-                          Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
-
-
-                          if (data.get(9).equals("alive")) {
-                          //    if (marker != null) marker.remove();
                               marker.setPosition(location);
-                              marker.setTitle(data.get(5));
-                              marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
+                              marker.setTitle(dataSnapshot.child("name").getValue().toString());
+                              if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
+                                  //    if (marker != null) marker.remove();
+                                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
 
-                          } else {
-                              //   if (marker != null) marker.remove();
-                              marker.setPosition(location);
-                              marker.setTitle(data.get(5));
-                              marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_dead)));
+                              } else {
+                                  //   if (marker != null) marker.remove();
+                                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_dead)));
+                              }
+
                           }
-                          data.clear();
 
                       }
 
