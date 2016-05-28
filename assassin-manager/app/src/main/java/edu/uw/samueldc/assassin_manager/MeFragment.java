@@ -92,23 +92,6 @@ public class MeFragment extends Fragment {
         return v;
     }
 
-
-    private void set(String kills, String status) {
-        if(tvName == null) {
-            tvName = (TextView) getView().findViewById(R.id.myName);
-            tvScore = (TextView) getView().findViewById(R.id.myScore);
-            tvStatus = (TextView) getView().findViewById(R.id.myStatus);
-        }
-        playerScore = kills;
-        playerStatus = status;
-
-
-        tvName.setText(playerName);
-        tvStatus.setText(status);
-        tvScore.setText(kills);
-
-    }
-
     @Override
     public void onDetach() {
         super.onDetach();
