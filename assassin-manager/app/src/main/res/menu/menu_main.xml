@@ -11,4 +11,7 @@
         app:showAsAction="ifRoom|withText"
         android:title="Profile">
     </item>
+    <item android:id="@+id/toggleTheme"
+        android:title="Day/Night"
+         />
 </menu>

@@ -61,16 +61,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     Firebase fireBaseRef;
 
-    private String playerName;
-    private static String roomName;
+    private static String room;
     private static String userID;
+    private static HashMap<String, String> userData;
 
     private boolean bound;
     private HashMap<String, Beacon> beacons;
 
     private BeaconReceiver receiver = null;
     private boolean isRegistered = false;
-    private static HashMap<String, String> userData;
+
 
     private Location curLocation;
     Location originLocation;
@@ -78,16 +78,45 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private static Double originLog;
     LocationManager locationManager;
     private final int PERMISSION_CODE = 1;
-    private int mThemeId = -1;
 
+    private int themeID = -1;
+
+    private Intent starterIntent;
 
     private GoogleApiClient myGoogleApiClient;
 
     @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putInt("theme", themeID );
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // ======= theme stuff
+//        themeID = savedInstanceState.getInt("theme");
+//        Log.d(TAG, "========== THEME ID: " + themeID);
+        if(savedInstanceState != null && savedInstanceState.getInt("theme", -1) != -1) {
+
+            themeID = savedInstanceState.getInt("theme");
+            Log.d(TAG, "========== THEME ID: " + themeID);
+            this.setTheme(themeID);
+        }
+
+//        this.setTheme(R.style.AppTheme_Night);
+
         super.onCreate(savedInstanceState);
+
+
+
+
         Firebase.setAndroidContext(this);
         setContentView(R.layout.activity_main);
+
+        // store intent if needs to recreate this activity
+        starterIntent = getIntent();
 
 
     //    nightMode(MainActivity.this);
@@ -134,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (bundle != null && userData == null) {
             userData = (HashMap) bundle.getSerializable("userData");
             userID = bundle.getString("userID");
+            room = bundle.getString("room");
             Log.d(TAG, "========== USER ID: " + userID);
         }
 
@@ -349,7 +379,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             startActivity(intent);
             return true;
+
+        } else if (id == R.id.toggleTheme) {
+            // change to night mode
+            if (themeID == R.style.AppTheme_Night) {
+                themeID = R.style.AppTheme;
+            } else {
+                themeID = R.style.AppTheme_Night;
+            }
+            this.recreate();
+            return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -391,11 +432,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         }
     }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -444,13 +480,15 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // determine switch to night mode or not
         boolean nightMode = prefs.getBoolean("pref_night",true);
         if (nightMode) {
-            mThemeId = R.style.AppTheme_Night;
-//            this.setTheme(mThemeId);
-//            this.recreate();
+            themeID = R.style.AppTheme_Night;
+            this.setTheme(themeID);
+            this.finish();
+            startActivity(starterIntent);
         } else {
-            mThemeId = R.style.AppTheme_Daylight;
-//            this.setTheme(mThemeId);
-//            this.recreate();
-        }
+            themeID = R.style.AppTheme_Daylight;
+            this.setTheme(themeID);
+            this.finish();
+            startActivity(starterIntent);
         }
     }
+}
