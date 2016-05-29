@@ -74,6 +74,7 @@ public class MeFragment extends Fragment {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                data.clear();
                 Log.i(TAG, "Starting data gather...");
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
                     data.add(child.getValue().toString());
@@ -111,6 +112,8 @@ public class MeFragment extends Fragment {
         tvScore.setText(kills);
 
     }
+
+
 
     @Override
     public void onDetach() {

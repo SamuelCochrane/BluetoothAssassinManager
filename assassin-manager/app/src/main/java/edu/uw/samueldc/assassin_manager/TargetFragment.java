@@ -1,12 +1,26 @@
 package edu.uw.samueldc.assassin_manager;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.EventListener;
 
 
 /**
@@ -17,36 +31,38 @@ import android.view.ViewGroup;
  * Use the {@link TargetFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class TargetFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class TargetFragment extends Fragment implements View.OnClickListener {
+    private static final String TAG = "***TargetFrag***";
+    Firebase fireBaseRef;
+    static String playerName;
+    static String playerID;
+    static String playerRoom;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    static String targetName;
+    static String targetID;
+    static float targetDistance;
+    static boolean inRange;
 
-    private OnFragmentInteractionListener mListener;
+    String playerScore;
+    String playerStatus;
+    TextView tvTargetName;
+    TextView tvTargetDistance;
+    TextView tvStatus;
+    Button killButton;
 
-    public TargetFragment() {
-        // Required empty public constructor
-    }
+    ValueEventListener targetListener;
+    Firebase ref;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment TargetFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static TargetFragment newInstance(String param1, String param2) {
+
+
+
+    public static TargetFragment newInstance(String name, String room, String myID, String targetID) {
         TargetFragment fragment = new TargetFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString("name", name);
+        args.putString("room", room);
+        args.putString("playerID", myID);
+        args.putString("targetID", targetID);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,41 +71,177 @@ public class TargetFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            playerName = getArguments().getString("name");
+            playerRoom = getArguments().getString("room");
+            playerID = getArguments().getString("playerID");
+            targetID = getArguments().getString("targetID");
         }
+    }
+
+    public TargetFragment() {
+        // Required empty public constructor
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        View v = inflater.inflate(R.layout.fragment_target, container, false);
+        Button b = (Button) v.findViewById(R.id.killButton);
+        b.setOnClickListener(this);
+
+
+
+        ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
+        final ArrayList<String> data = new ArrayList<String>();
+        targetListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "Starting data gather...");
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    data.add(child.getValue().toString());
+                }
+
+                Log.i(TAG,"Data List: "+data.toString());
+
+                //TODO: actually get the targets distance for realskies
+                String tName = data.get(5);
+
+                float tDistance = 2.5123152131f; //data.get(-);
+                set(tName, tDistance);
+
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+        };
+        ref.addValueEventListener(targetListener);
+
+        return v;
+    }
+
+
+    private void set(String targetName, float distance) {
+        if(tvTargetName == null) {
+            tvStatus = (TextView) getView().findViewById(R.id.targetSpottedText);
+            tvTargetName = (TextView) getView().findViewById(R.id.targetSpottedNameText);
+            tvTargetDistance = (TextView) getView().findViewById(R.id.targetSpottedDistance);
+            killButton = (Button) getView().findViewById(R.id.killButton);
+        }
+
+        this.targetName = targetName;
+        this.targetDistance = distance;
+        this.inRange = isInRange(distance);
+
+        tvTargetName.setText(targetName);
+        String targetDistanceText = new DecimalFormat("#.00m").format(targetDistance);
+        tvTargetDistance.setText(targetDistanceText);
+        killButton.setClickable(inRange);
+        if(inRange) {
+            tvStatus.setText(R.string.target_spotted_text_in_range);
+        } else {
+            tvStatus.setText(R.string.target_spotted_text_not_in_range);
+        }
+
+
+
+    }
+
+    private float killRange = 5.0f;
+    public boolean isInRange(float distance) {
+        return (distance < killRange);
+
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_target, container, false);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.killButton:
+                killTarget();
+                break;
         }
     }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
+
+    private String targetsTarget;
+    private int ourScore;
+    private Firebase myFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
+    //sets a player to dead,
+    //called by killButton
+    public void killTarget() {
+
+
+
+        Firebase targetFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
+        targetFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+//                Log.i(TAG, "Starting data gather...");
+                targetsTarget = dataSnapshot.child("target").getValue().toString();
+                targetID = targetsTarget;
+                Log.i(TAG, "new target:" + targetID);
+                Log.i(TAG, playerName + " just killed " + dataSnapshot.child("name").getValue().toString() + "!");
+
+
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+        });
+        targetFireBaseRef.child("status").setValue("dead");
+
+
+
+        targetFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ourScore = Integer.parseInt(dataSnapshot.child("kills").getValue().toString());
+
+
+                myFireBaseRef.child("kills").setValue(ourScore + 1);
+                myFireBaseRef.child("target").setValue(targetsTarget);
+
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+
+        });
+
+
+
+
+
+
+
+
+
+
+/*        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment newFragment = new TargetFragment();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.targetFragment, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();*/
+    }
+
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
+
+ /*   @Override
+    public void onResume() {
+        super.onResume();
+        if(playerScore != null) {
+            set(playerScore, playerStatus);
+        }
+    }*/
 
     /**
      * This interface must be implemented by activities that contain this
