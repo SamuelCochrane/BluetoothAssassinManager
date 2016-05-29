@@ -1,13 +1,9 @@
 package edu.uw.samueldc.assassin_manager;
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,8 +16,6 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class MeFragment extends Fragment {
@@ -35,9 +29,6 @@ public class MeFragment extends Fragment {
     TextView tvName;
     TextView tvScore;
     TextView tvStatus;
-
-
-
 
     public static MeFragment newInstance(String name, String room, String id) {
         MeFragment fragment = new MeFragment();
@@ -68,23 +59,29 @@ public class MeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_me, container, false);
+
         Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
         final ArrayList<String> data = new ArrayList<String>();
 
-        ref.addValueEventListener(new ValueEventListener() {
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 data.clear();
                 Log.i(TAG, "Starting data gather...");
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    data.add(child.getValue().toString());
-                }
+                Log.d(TAG, "========== USER INFO: " + dataSnapshot.toString());
+                String kills = dataSnapshot.child("kills").getValue().toString();
+                String status = dataSnapshot.child("status").getValue().toString();
 
-                Log.i(TAG,"Data List: "+data.toString());
+                tvName = (TextView) getView().findViewById(R.id.myName);
+                tvScore = (TextView) getView().findViewById(R.id.myScore);
+                tvStatus = (TextView) getView().findViewById(R.id.myStatus);
 
-                String kills = data.get(2);
-                String status = data.get(9);
-                set(kills, status);
+                playerScore = kills;
+                playerStatus = status;
+
+                tvName.setText(playerName);
+                tvStatus.setText(status);
+                tvScore.setText(kills);
 
             }
             @Override
@@ -96,6 +93,7 @@ public class MeFragment extends Fragment {
         return v;
     }
 
+<<<<<<< HEAD
 
     private void set(String kills, String status) {
         if(tvName == null) {
@@ -115,6 +113,8 @@ public class MeFragment extends Fragment {
 
 
 
+=======
+>>>>>>> origin/master
     @Override
     public void onDetach() {
         super.onDetach();

@@ -10,10 +10,12 @@ import android.app.TaskStackBuilder;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -65,7 +67,20 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     private Beacon transmittedBeacon;
     private boolean isRunning = false;
 
+    public Beacon hunter;
+    public Beacon prey;
+    public HashMap<String, Beacon> beaconMap = new HashMap<>();
+
+
+    public String hunterUniqueID;
+
+    // flags to check if hunter or prey is nearby
+    private boolean isHunterNearby = false;
+    private boolean isTargetNearby = false;
+
     HashMap<String, String> userData = null;
+
+    private Firebase fireBaseRef;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -98,9 +113,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
                 // reduce bluetooth power consumption by around 60%
                 backgroundPowerSaver = new BackgroundPowerSaver(context);
-
-                BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
-                ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
+//
+//                BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+//                ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
 
                 // ======== start advertising itself
 //                if (transmittedBeacon == null) {
@@ -148,7 +163,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             Log.d(TAG, "USER NAME HASH: " + userData.get("nameHash"));
             transmittedBeacon = new Beacon.Builder()
                     .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
-                    .setId2(userData.get("id2"))
+                    .setId2(userData.get("uniqueID"))
                     .setId3(userData.get("id3"))
                     .setManufacturer(0x0118)
                     .setTxPower(-59)
@@ -185,60 +200,153 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
     }
 
+    private ValueEventListener listener;
 
-    // TODO: WHY NOT RUN IN BACKGROUND??
     @Override
     public void onBeaconServiceConnect() {
         beaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 Log.d(TAG, "RECEIVE BEACON MESSAGE!!");
-//                Toast.makeText(context, "RECEIVE BEACON MESSAGE!!", Toast.LENGTH_SHORT).show();
                 if (beacons.size() > 0) {
 
-                    for (Beacon beacon : beacons) {
-                        List<Long> datafileds = beacon.getDataFields();
-                        for (Long data : datafileds) {
-                            Log.d(TAG, "RECEIVED BEACON HASH CODE: " + data);
-                        }
-//                        Log.d(TAG, "RECEIVED BEACON HASH CODE: " + beacon.getDataFields())
-                    }
+                    final Collection<Beacon> beaconList = beacons;
 
                     final String room = userData.get("room");
                     final String username = userData.get("name");
                     final String nameHash = userData.get("nameHash");
 
-                    // ========= check if one of those beacons is hunter or prey <------ check itself for testing right now
-                    // TODO: EXTEND IT TO CHECK OTHER BEACONS -- NEED MORE DEVICES
-                    Firebase fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-                   /* fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    // ========= check if one of those beacons is hunter or prey <------ check itself for testing right now
+                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
+
+                    // TODO: ADD HUNTER AND PREY CHECKING FROM DB
+                   fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 //                            dataSnapshot.getValue();
-                           for (DataSnapshot child : dataSnapshot.getChildren()) {
-//                               Log.d(TAG, child.toString());
+
+                            ArrayList<String> roomUsers = new ArrayList<String>();
+
+                            for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                roomUsers.add(child.getKey());
+                            }
+
+                            for (final String userID : roomUsers) {
+                                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                                final HashMap<String, String> data = new HashMap<String, String>();
+
+
+                                listener = new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        data.clear();
+                                        for (DataSnapshot child : dataSnapshot.getChildren()) {
+                               Log.d(TAG, child.toString());
 //                               Log.d(TAG, child.child("name").getValue().toString());
-                               if (child.child("nameHash").getValue().toString().equalsIgnoreCase(nameHash)) {
-                                   Log.d(TAG, "========= FOUND YOURSELF");
-                                   sendNotification();
-                               }
-                           }
+                                            for (Beacon beacon : beaconList) {
+
+                                                // ======== first check if this beacon is my hunter
+                                                if (hunterUniqueID == null) {
+                                                    // means not found a hunter yet, need to search db
+                                                    if (child.child("target") != null) {
+                                                        if (child.child("target").toString().equalsIgnoreCase(userData.get("uniqueID"))) {
+                                                            // if a user's target is me, this user is my hunter
+                                                            hunterUniqueID = child.child("uniqueID").toString();
+                                                            if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                                // this beacon device is my hunter
+                                                                Log.d(TAG, "========= FOUND HUNTER!!");
+                                                                Log.d(TAG, "========= " + child.child("name").getValue().toString());
+                                                                sendNotification();
+                                                                isHunterNearby = true;
+                                                                hunter = beacon; // update hunter anyway
+                                                            }
+                                                        }
+                                                    }
+
+                                                } else {
+                                                    // already have hunter's unique id, compare to beacon directly
+                                                    if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                        // this beacon device is my hunter
+                                                        Log.d(TAG, "========= FOUND HUNTER!!");
+                                                        Log.d(TAG, "========= " + child.child("name").getValue().toString());
+                                                        sendNotification();
+                                                        isHunterNearby = true;
+                                                        hunter = beacon; // update hunter anyway
+                                                    }
+                                                }
+
+                                                // ============ then check if this beacon is my target
+                                                if (userData.get("target") != null) {
+                                                    if (userData.get("target").equalsIgnoreCase(beacon.getId2().toString())) {
+                                                        if (prey == null) {
+                                                            Log.d(TAG, "========= FOUND PREY!!!");
+                                                            Log.d(TAG, "========= " + child.child("name").getValue().toString());
+                                                            sendNotification();
+                                                        }
+                                                        prey = beacon;
+                                                        isTargetNearby = true;
+                                                    }
+                                                }
+
+
+                                                // ========== for testing
+                                                if (child.child("uniqueID") != null) {
+                                                    if (child.child("uniqueID").getValue().toString().equalsIgnoreCase(beacon.getId2().toString())) {
+                                                        Log.d(TAG, "========= FOUND ONE PLAYER!!");
+                                                        Log.d(TAG, "========= " + child.child("name").getValue().toString());
+//                                               sendNotification();
+                                                    }
+                                                }
+
+                                            }
+
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(FirebaseError firebaseError) {
+                                        Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                                    }
+                                };
+
+                                fireBaseRef.addListenerForSingleValueEvent(listener);
+                            }
+
+                            // after that, need to check if hunter or prey is within range,
+                            // set them to false every time traverse a beacon list
+                            if (!isHunterNearby) {
+                                // if cannot find hunter within range, need to set it to null
+                                hunter = null;
+                            } else {
+                                isHunterNearby = false;
+                            }
+                            if (!isTargetNearby) {
+                                prey = null;
+                            } else {
+                                isTargetNearby = false;
+                            }
                         }
 
                         @Override
                         public void onCancelled(FirebaseError firebaseError) {
                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
                         }
-                    });*/
+                    });
 
-                    // send collections of beacons as broadcast message to other activities
+                    // send hunter and prey as map of beacons as broadcast message to other activities
                     Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
                     Bundle beaconBundle = new Bundle();
-                    ArrayList<Beacon> temList = new ArrayList<Beacon>(beacons);
+
+                    if (hunter != null) {
+                        beaconMap.put("hunter", hunter);
+                    }
+                    if (prey != null) {
+                        beaconMap.put("target", prey);
+                    }
 //                    Log.d(TAG, "" + beacons.size());
 //                    Log.d(TAG, temList.get(0).toString());
-                    beaconBundle.putParcelableArrayList("beacons", temList);
+                    beaconBundle.putSerializable("beaconMap", beaconMap);
 //                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
                     broadcastBeaconsIntent.putExtras(beaconBundle);
                     sendBroadcast(broadcastBeaconsIntent);
@@ -287,27 +395,37 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     }
 
     private void sendNotification() {
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this)
-                        .setContentTitle("Beacon Reference Application")
-                        .setContentText("An beacon is nearby.")
-                        .setSmallIcon(R.drawable.cast_ic_notification_0)
-                        .setVibrate(new long[] {0, 500, 500, 500})
-                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                        .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setVisibility(0);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        builder.setContentIntent(resultPendingIntent);
-        NotificationManager notificationManager =
-                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        // determine if it should show popup notification
+        boolean showPopup = prefs.getBoolean("pref_show_notification", true);
+
+        if (showPopup) {
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(this)
+                            .setContentTitle("Beacon Reference Application")
+                            .setContentText("A HUNTER is nearby.")
+                            .setSmallIcon(R.drawable.cast_ic_notification_0)
+//                        .setVibrate(new long[] {0, 500, 500, 500})
+                            .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setVisibility(0);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addParentStack(MainActivity.class);
+            stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            builder.setContentIntent(resultPendingIntent);
+            NotificationManager notificationManager =
+                    (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(1, builder.build());
+        } else {
+            Toast.makeText(context, "SOMEONE IS NEARBY!", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }

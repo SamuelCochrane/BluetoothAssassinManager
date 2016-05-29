@@ -1,5 +1,8 @@
 <resources>
 
+    <!-- Timer Screen -->
+    <string name="timer_notice">Please have any other players join this same room, before the game starts. If they join after the below time, they will not be added to the game.</string>
+
     <!--Lobby Screen-->
     <string name="lobby_tag_status">Status</string>
     <string name="lobby_tag_name">Name</string>
@@ -29,7 +32,14 @@
     <string name="app_name">Assassin</string>
     <string name="google_maps_key">AIzaSyDGcFA_9xspZs6BpUYrwHebeDjHpLFaB_o</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!--Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="daynight">Day/Night</string>
+
+    <!--End Text-->
+    <string name="end">YOU ARE BEING KILLED BY YOUR HUNTER!!</string>
 
 </resources>
