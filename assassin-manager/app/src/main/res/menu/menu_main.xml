@@ -6,12 +6,9 @@
         app:showAsAction="ifRoom"
         android:title="@string/settings_title">
     </item>
-    <item
-        android:id="@+id/miProfile"
-        app:showAsAction="ifRoom|withText"
-        android:title="Profile">
-    </item>
+
     <item android:id="@+id/toggleTheme"
-        android:title="Day/Night"
+        app:showAsAction="ifRoom"
+        android:title="@string/daynight"
          />
 </menu>

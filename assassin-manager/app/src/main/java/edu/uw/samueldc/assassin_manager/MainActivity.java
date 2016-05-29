@@ -174,10 +174,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
 //        }
 
-        fireBaseRef.child("users/" + userID).addValueEventListener(new ValueEventListener() {
+        fireBaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
+                if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
+                    Log.d(TAG, "========= USER ALIVE!!");
+                } else {
+                    // if dead, switch to end activity screen and close background beacon service
+                    stopService(new Intent(MainActivity.this, BeaconApplication.class));
+                    finish();
+                    startActivity(new Intent(MainActivity.this, EndActivity.class));
+                }
             }
 
             @Override

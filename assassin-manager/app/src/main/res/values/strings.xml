@@ -37,5 +37,9 @@
 
     <!--Settings -->
     <string name="settings_title">Settings</string>
+    <string name="daynight">Day/Night</string>
+
+    <!--End Text-->
+    <string name="end">YOU ARE BEING KILLED BY YOUR HUNTER!!</string>
 
 </resources>

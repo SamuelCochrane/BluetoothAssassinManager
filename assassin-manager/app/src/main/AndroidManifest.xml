@@ -27,14 +27,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity" />
 
         <service
             android:name=".BeaconApplication"
             android:enabled="true" />
 
-        <activity android:name=".TimerActivity"></activity>
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".TimerActivity" />
+        <activity android:name=".SettingsActivity" />
+        <activity android:name=".EndActivity"></activity>
     </application>
 
 </manifest>

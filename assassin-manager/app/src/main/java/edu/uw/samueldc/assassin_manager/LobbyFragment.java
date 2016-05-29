@@ -111,7 +111,7 @@ public class LobbyFragment extends ListFragment {
                             }
 
                             Log.v(TAG, "Data: " + data);
-
+                            
                             userData.put(userID, data);
 //                            Log.v(TAG, "UserData List: " + userData);
 //                            Log.v(TAG,"Data List: "+data.toString());
