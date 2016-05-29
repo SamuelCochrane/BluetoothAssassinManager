@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <SwitchPreference
+        android:key="pref_show_notification"
+        android:title="Show popup notification?"
+        android:defaultValue="true"
+        />
+
+    <SwitchPreference
         android:key="pref_night"
         android:title="Night Mode"
         android:defaultValue="false"/>

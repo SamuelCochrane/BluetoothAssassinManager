@@ -10,10 +10,12 @@ import android.app.TaskStackBuilder;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -393,27 +395,37 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     }
 
     private void sendNotification() {
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this)
-                        .setContentTitle("Beacon Reference Application")
-                        .setContentText("A HUNTER is nearby.")
-                        .setSmallIcon(R.drawable.cast_ic_notification_0)
-//                        .setVibrate(new long[] {0, 500, 500, 500})
-                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                        .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setVisibility(0);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        builder.setContentIntent(resultPendingIntent);
-        NotificationManager notificationManager =
-                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        // determine if it should show popup notification
+        boolean showPopup = prefs.getBoolean("pref_show_notification", true);
+
+        if (showPopup) {
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(this)
+                            .setContentTitle("Beacon Reference Application")
+                            .setContentText("A HUNTER is nearby.")
+                            .setSmallIcon(R.drawable.cast_ic_notification_0)
+//                        .setVibrate(new long[] {0, 500, 500, 500})
+                            .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setVisibility(0);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addParentStack(MainActivity.class);
+            stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            builder.setContentIntent(resultPendingIntent);
+            NotificationManager notificationManager =
+                    (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(1, builder.build());
+        } else {
+            Toast.makeText(context, "SOMEONE IS NEARBY!", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }
