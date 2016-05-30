@@ -229,8 +229,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         beaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                Log.d(TAG, "RECEIVE BEACON MESSAGE!!");
+
                 if (beacons.size() > 0) {
+                    Log.d(TAG, "RECEIVE BEACON MESSAGE!!");
 
                     final Collection<Beacon> beaconList = beacons;
 
@@ -339,31 +340,19 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                 smallRef.addListenerForSingleValueEvent(listener);
                             }
 
-                            // after that, need to check if hunter or prey is within range,
-                            // set them to false every time traverse a beacon list
-                            if (!isHunterNearby) {
-                                // if cannot find hunter within range, need to set it to null
-                                hunter = null;
-                            } else {
-                                isHunterNearby = false;
-                            }
-                            if (!isTargetNearby) {
-                                prey = null;
-                            } else {
-                                isTargetNearby = false;
-                            }
 
-                            Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
-                            Bundle beaconBundle = new Bundle();
 
-                            if (hunter != null) {
-                                Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
-                                beaconMap.put("hunter", hunter);
-                            }
-                            if (prey != null) {
-                                Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
-                                beaconMap.put("target", prey);
-                            }
+//                            Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
+//                            Bundle beaconBundle = new Bundle();
+//
+//                            if (hunter != null) {
+//                                Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
+//                                beaconMap.put("hunter", hunter);
+//                            }
+//                            if (prey != null) {
+//                                Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
+//                                beaconMap.put("target", prey);
+//                            }
 //                    Log.d(TAG, "" + beacons.size());
 //                    Log.d(TAG, temList.get(0).toString());
 
@@ -382,30 +371,50 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     });
 
                     // send hunter and prey as map of beacons as broadcast message to other activities
-                    Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
-                    Bundle beaconBundle = new Bundle();
 
-                    if (hunter != null) {
-                        Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
-                        beaconMap.put("hunter", hunter);
-                    }
-                    if (prey != null) {
-                        Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
-                        beaconMap.put("target", prey);
-                    }
+
+
 //                    Log.d(TAG, "" + beacons.size());
 //                    Log.d(TAG, temList.get(0).toString());
-                    beaconBundle.putParcelable("target", prey);
-                    beaconBundle.putParcelable("hunter", hunter);
-                    beaconBundle.putString("ttt", "asdfasdfasdf");
-//                    beaconBundle.putSerializable("beaconMap", beaconMap);
-//                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
-                    broadcastBeaconsIntent.putExtras(beaconBundle);
-                    sendBroadcast(broadcastBeaconsIntent);
+
                     //EditText editText = (EditText)RangingActivity.this.findViewById(R.id.rangingText);
 //                    Beacon firstBeacon = beacons.iterator().next();
 //                    logToDisplay("The first beacon " + firstBeacon.toString() + " is about " + firstBeacon.getDistance() + " meters away.");
                 }
+                // after that, need to check if hunter or prey is within range,
+                // set them to false every time traverse a beacon list
+                if (!isHunterNearby) {
+                    // if cannot find hunter within range, need to set it to null
+                    hunter = null;
+                } else {
+                    isHunterNearby = false;
+                }
+                if (!isTargetNearby) {
+                    prey = null;
+                } else {
+                    isTargetNearby = false;
+                }
+
+                if (hunter != null) {
+                    Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
+                    beaconMap.put("hunter", hunter);
+                }
+                if (prey != null) {
+                    Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
+                    beaconMap.put("target", prey);
+                } else {
+                    Log.d(TAG, "----------- PREY IS ESCAPING!!");
+                }
+                Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
+                Bundle beaconBundle = new Bundle();
+
+                beaconBundle.putParcelable("target", prey);
+                beaconBundle.putParcelable("hunter", hunter);
+                beaconBundle.putString("ttt", "asdfasdfasdf");
+//                    beaconBundle.putSerializable("beaconMap", beaconMap);
+//                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
+                broadcastBeaconsIntent.putExtras(beaconBundle);
+                sendBroadcast(broadcastBeaconsIntent);
             }
 
         });

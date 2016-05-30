@@ -327,6 +327,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //                if (beacons.get("hunter") != null) {
 //                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
 //                }
+            } else {
+                Log.d(TAG, "============ YOUR TARGET IS NULL: ");
+                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
+                if (targetFrag != null) {
+                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+                    targetFrag.updateTarget(target);
+                }
             }
 
 

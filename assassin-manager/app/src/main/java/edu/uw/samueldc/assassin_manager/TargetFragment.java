@@ -91,6 +91,8 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
         if (target != null) {
             targetDistance = target.getDistance();
             set(targetName, targetDistance);
+        } else {
+            set(targetName, null);
         }
     }
 
