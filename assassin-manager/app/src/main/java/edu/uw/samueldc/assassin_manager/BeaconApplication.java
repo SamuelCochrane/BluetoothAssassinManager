@@ -68,11 +68,12 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     private boolean isRunning = false;
 
     public Beacon hunter;
-    public Beacon prey;
+    public Beacon prey = null;
     public HashMap<String, Beacon> beaconMap = new HashMap<>();
 
 
     public String hunterUniqueID;
+    public String targetUniqueID;
 
     // flags to check if hunter or prey is nearby
     private boolean isHunterNearby = false;
@@ -158,6 +159,27 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             userData = (HashMap) receivedInfo.getSerializable("userData");
         }
 
+
+        // add event listener to update userdata's target dynamically
+        if (userData != null) {
+            fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userData.get("userID"));
+
+            fireBaseRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.child("target").getValue() != null) {
+                        targetUniqueID = dataSnapshot.child("target").getValue().toString();
+                    }
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                }
+            });
+        }
+
+
         if (transmittedBeacon == null && userData != null) {
             // build a beacon
             Log.d(TAG, "USER NAME HASH: " + userData.get("nameHash"));
@@ -220,7 +242,6 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     // ========= check if one of those beacons is hunter or prey <------ check itself for testing right now
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-                    // TODO: ADD HUNTER AND PREY CHECKING FROM DB
                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -233,7 +254,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                             }
 
                             for (final String userID : roomUsers) {
-                                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                                Firebase smallRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
                                 final HashMap<String, String> data = new HashMap<String, String>();
 
 
@@ -241,67 +262,72 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         data.clear();
-                                        for (DataSnapshot child : dataSnapshot.getChildren()) {
-                               Log.d(TAG, child.toString());
-//                               Log.d(TAG, child.child("name").getValue().toString());
-                                            for (Beacon beacon : beaconList) {
 
-                                                // ======== first check if this beacon is my hunter
-                                                if (hunterUniqueID == null) {
-                                                    // means not found a hunter yet, need to search db
-                                                    if (child.child("target") != null) {
-                                                        if (child.child("target").toString().equalsIgnoreCase(userData.get("uniqueID"))) {
-                                                            // if a user's target is me, this user is my hunter
-                                                            hunterUniqueID = child.child("uniqueID").toString();
-                                                            if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
-                                                                // this beacon device is my hunter
-                                                                Log.d(TAG, "========= FOUND HUNTER!!");
-                                                                Log.d(TAG, "========= " + child.child("name").getValue().toString());
-                                                                sendNotification();
-                                                                isHunterNearby = true;
-                                                                hunter = beacon; // update hunter anyway
-                                                            }
+                                        Log.d(TAG, "========== CHILD: " + dataSnapshot.toString());
+
+                                        for (Beacon beacon : beaconList) {
+
+                                            // ======== first check if this beacon is my hunter
+                                            if (hunterUniqueID == null) {
+//                                                Log.d(TAG, "============ NO HUNTER FOUND");
+                                                // means not found a hunter yet, need to search db
+                                                if (dataSnapshot.child("target") != null) {
+                                                    Log.d(TAG, "+++++++ MY UNIQUE ID: " + userData.get("uniqueID"));
+                                                    if (dataSnapshot.child("target").getValue().toString().equalsIgnoreCase(userData.get("uniqueID"))) {
+                                                        Log.d(TAG, "======= THIS IS MY HUNTER: " + dataSnapshot.child("name"));
+                                                        // if a user's target is me, this user is my hunter
+                                                        hunterUniqueID = dataSnapshot.child("uniqueID").getValue().toString();
+                                                        if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                            // this beacon device is my hunter
+//                                                            Log.d(TAG, "========= FOUND HUNTER!!");
+                                                            Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                                            sendNotification("A HUNTER IS NEARBY!!");
+                                                            isHunterNearby = true;
+                                                            hunter = beacon; // update hunter anyway
                                                         }
                                                     }
-
-                                                } else {
-                                                    // already have hunter's unique id, compare to beacon directly
-                                                    if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
-                                                        // this beacon device is my hunter
-                                                        Log.d(TAG, "========= FOUND HUNTER!!");
-                                                        Log.d(TAG, "========= " + child.child("name").getValue().toString());
-                                                        sendNotification();
-                                                        isHunterNearby = true;
-                                                        hunter = beacon; // update hunter anyway
-                                                    }
                                                 }
 
-                                                // ============ then check if this beacon is my target
-                                                if (userData.get("target") != null) {
-                                                    if (userData.get("target").equalsIgnoreCase(beacon.getId2().toString())) {
-                                                        if (prey == null) {
-                                                            Log.d(TAG, "========= FOUND PREY!!!");
-                                                            Log.d(TAG, "========= " + child.child("name").getValue().toString());
-                                                            sendNotification();
-                                                        }
-                                                        prey = beacon;
-                                                        isTargetNearby = true;
-                                                    }
+                                            } else {
+                                                // already have hunter's unique id, compare to beacon directly
+//                                                Log.d(TAG, "============ HUNTER already FOUND");
+                                                if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                    // this beacon device is my hunter
+//                                                    Log.d(TAG, "========= FOUND HUNTER!!");
+                                                    Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                                    sendNotification("A HUNTER IS NEARBY!!");
+                                                    isHunterNearby = true;
+                                                    hunter = beacon; // update hunter anyway
                                                 }
-
-
-                                                // ========== for testing
-                                                if (child.child("uniqueID") != null) {
-                                                    if (child.child("uniqueID").getValue().toString().equalsIgnoreCase(beacon.getId2().toString())) {
-                                                        Log.d(TAG, "========= FOUND ONE PLAYER!!");
-                                                        Log.d(TAG, "========= " + child.child("name").getValue().toString());
-//                                               sendNotification();
-                                                    }
-                                                }
-
                                             }
 
+                                            // ============ then check if this beacon is my target
+                                            if (targetUniqueID != null) {
+                                                Log.d(TAG, "============ TARGET already HAVE: " + targetUniqueID);
+                                                Log.d(TAG, "++++++++++ BEACON id2: " + beacon.getId2());
+                                                if (targetUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+
+//                                                    Log.d(TAG, "========= FOUND PREY!!!");
+                                                    Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                                    prey = beacon;
+                                                    sendNotification("A TARGET IS NEARBY!!");
+
+                                                    isTargetNearby = true;
+                                                }
+                                            }
+
+
+                                            // ========== for testing
+//                                            if (dataSnapshot.child("uniqueID").getValue() != null) {
+//                                                if (dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(beacon.getId2().toString())) {
+//                                                    Log.d(TAG, "========= FOUND ONE PLAYER!!");
+//                                                    Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+////                                               sendNotification();
+//                                                }
+//                                            }
+
                                         }
+
                                     }
 
                                     @Override
@@ -310,7 +336,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                     }
                                 };
 
-                                fireBaseRef.addListenerForSingleValueEvent(listener);
+                                smallRef.addListenerForSingleValueEvent(listener);
                             }
 
                             // after that, need to check if hunter or prey is within range,
@@ -326,6 +352,27 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                             } else {
                                 isTargetNearby = false;
                             }
+
+                            Intent broadcastBeaconsIntent = new Intent(BeaconApplication.BROADCAST_BEACON);
+                            Bundle beaconBundle = new Bundle();
+
+                            if (hunter != null) {
+                                Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
+                                beaconMap.put("hunter", hunter);
+                            }
+                            if (prey != null) {
+                                Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
+                                beaconMap.put("target", prey);
+                            }
+//                    Log.d(TAG, "" + beacons.size());
+//                    Log.d(TAG, temList.get(0).toString());
+
+//                            beaconBundle.putParcelable("target", prey == null? transmittedBeacon:prey);
+//                            beaconBundle.putParcelable("hunter", hunter);
+////                    beaconBundle.putSerializable("beaconMap", beaconMap);
+////                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
+//                            broadcastBeaconsIntent.putExtras(beaconBundle);
+//                            sendBroadcast(broadcastBeaconsIntent);
                         }
 
                         @Override
@@ -339,14 +386,19 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                     Bundle beaconBundle = new Bundle();
 
                     if (hunter != null) {
+                        Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
                         beaconMap.put("hunter", hunter);
                     }
                     if (prey != null) {
+                        Log.d(TAG, "+++++++++++ PREY FOUND: " + prey.toString());
                         beaconMap.put("target", prey);
                     }
 //                    Log.d(TAG, "" + beacons.size());
 //                    Log.d(TAG, temList.get(0).toString());
-                    beaconBundle.putSerializable("beaconMap", beaconMap);
+                    beaconBundle.putParcelable("target", prey);
+                    beaconBundle.putParcelable("hunter", hunter);
+                    beaconBundle.putString("ttt", "asdfasdfasdf");
+//                    beaconBundle.putSerializable("beaconMap", beaconMap);
 //                    beaconBundle.putParcelable("beacons", beacons.iterator().next());
                     broadcastBeaconsIntent.putExtras(beaconBundle);
                     sendBroadcast(broadcastBeaconsIntent);
@@ -394,7 +446,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         // leave empty
     }
 
-    private void sendNotification() {
+    private void sendNotification(String text) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         // determine if it should show popup notification
@@ -404,7 +456,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             NotificationCompat.Builder builder =
                     new NotificationCompat.Builder(this)
                             .setContentTitle("Beacon Reference Application")
-                            .setContentText("A HUNTER is nearby.")
+                            .setContentText(text)
                             .setSmallIcon(R.drawable.cast_ic_notification_0)
 //                        .setVibrate(new long[] {0, 500, 500, 500})
                             .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)

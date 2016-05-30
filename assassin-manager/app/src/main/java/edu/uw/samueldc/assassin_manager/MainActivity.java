@@ -27,9 +27,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.firebase.client.DataSnapshot;
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private static String room;
     private static String userID;
     private static HashMap<String, String> userData;
+
+    private static String targetID = null;
 
     private boolean bound;
     private HashMap<String, Beacon> beacons;
@@ -157,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         });
 
+
+
         // ============ db stuff
         // Passed bundle info to use for the database
         Bundle bundle = getIntent().getExtras();
@@ -164,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             userData = (HashMap) bundle.getSerializable("userData");
             userID = bundle.getString("userID");
             room = bundle.getString("room");
-            Log.d(TAG, "========== USER ID: " + userID);
+            Log.d(TAG, "========== USER INFO: " + userData.toString());
         }
 
 
@@ -178,12 +184,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
-                    Log.d(TAG, "========= USER ALIVE!!");
+//                    Log.d(TAG, "========= USER ALIVE!!");
                 } else {
                     // if dead, switch to end activity screen and close background beacon service
                     stopService(new Intent(MainActivity.this, BeaconApplication.class));
                     finish();
                     startActivity(new Intent(MainActivity.this, EndActivity.class));
+                }
+
+                if (dataSnapshot.child("target") != null) {
+                    targetID = dataSnapshot.child("target").getValue().toString();
                 }
             }
 
@@ -288,29 +298,38 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     public void onBeaconReceived(Context context, Intent intent) {
         String str = intent.getAction();
+        Log.d(TAG, "========= YOU RECEIVE SOMETHING: " + str);
         // if receive beacons, try to get extras
         if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
 //                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
             // a map of hunter and target
-            Bundle bundle = this.getIntent().getExtras();
-            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
-            Log.d(TAG, "" + beacons.size());
-            if (beacons != null) {
-                if (beacons.get("target") != null) {
-                    Log.d(TAG, "============ YOUR TARGET: " + beacons.get("target").toString());
+            Bundle bundle = intent.getExtras();
+//            String strings = intent.getExtras().getString("beaconStr");
+            Log.d(TAG, "+++++++++ YOU GET BUNDLE: " + bundle);
+//            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
+
+            Beacon target = bundle.getParcelable("target");
+
+//            Log.d(TAG, "++++++++ YOU GET TARGET: " + target.toString());
+            if (target != null) {
+                Log.d(TAG, "============ YOUR TARGET: " + target.toString());
+                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
+                if (targetFrag != null) {
+                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+                    targetFrag.updateTarget(target);
                 }
-                if (beacons.get("hunter") != null) {
-                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
-                }
+//                TargetFragment targetFrag  = (TargetFragment) getSupportFragmentManager().findFragmentById(R.id.targetFragment);
+//                if (targetFrag != null) {
+//                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+//                    targetFrag.updateTarget(target);
+//                }
+
+//                if (beacons.get("hunter") != null) {
+//                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
+//                }
             }
 
-            // pass newly received beacon list to each fragment by calling their specified method
-            for(int i = 0; i < pageAdapter.getCount(); i++) {
-                Fragment viewPagerFragment = pageAdapter.getItem(i);
-                if(viewPagerFragment != null) {
-                    // TODO: add update beacon list to specified fragment!
-                }
-            }
+
         } else if (str.equals(BeaconApplication.RANGING_DONE)) {
             Log.d(TAG, "ENTER A NEW BEACON REGION!");
         } else {
@@ -346,6 +365,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        startService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStart();
+        if (!isRegistered) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BeaconApplication.BROADCAST_BEACON);
+            filter.addAction(BeaconApplication.RANGING_DONE);
+            registerReceiver(receiver, filter);
+            isRegistered = true;
+        }
         myGoogleApiClient.connect();
     }
 
@@ -354,6 +380,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         stopService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStop();
+        if (isRegistered) {
+            unregisterReceiver(receiver);
+            isRegistered = false;
+        }
         myGoogleApiClient.disconnect();
     }
 
@@ -413,9 +443,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
 
     public static class PageAdapter extends FragmentPagerAdapter {
+        SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
+
         public PageAdapter(FragmentManager fm) {
             super(fm);
         }
+
 
         @Override
         public int getCount() {
@@ -433,10 +466,27 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //                    return new MeFragment();
                     return new MeFragment().newInstance(userData.get("name"), userData.get("room"), userID);
                 case 3:
-                    return new TargetFragment();
+                    return new TargetFragment().newInstance(userData.get("name"), userData.get("room"), userID, targetID);
                 default:
                     return null;
             }
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            registeredFragments.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            registeredFragments.remove(position);
+            super.destroyItem(container, position, object);
+        }
+
+        public Fragment getRegisteredFragment(int position) {
+            return registeredFragments.get(position);
         }
     }
 

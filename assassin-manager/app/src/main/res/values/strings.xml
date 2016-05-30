@@ -21,8 +21,8 @@
 
 
     <!--Target Screen-->
-    <string name="target_name">Target Name</string>
-    <string name="target_distance">5m</string>
+    <string name="target_name">Target Name Not Set</string>
+    <string name="target_distance">Not Feasible</string>
     <string name="target_spotted_text_in_range">Target in range</string>
     <string name="target_spotted_text_not_in_range">Target not in range</string>
     <string name="kill_button">Kill</string>

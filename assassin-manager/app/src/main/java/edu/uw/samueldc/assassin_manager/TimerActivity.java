@@ -159,6 +159,8 @@ public class TimerActivity extends AppCompatActivity {
 
     // Updates userData variable to hold info for all current users
     public void adjustUsers() {
+        Firebase.setAndroidContext(this);
+
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
         fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {

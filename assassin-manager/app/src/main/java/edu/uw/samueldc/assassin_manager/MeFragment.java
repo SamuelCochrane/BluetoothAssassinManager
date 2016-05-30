@@ -93,7 +93,6 @@ public class MeFragment extends Fragment {
         return v;
     }
 
-<<<<<<< HEAD
 
     private void set(String kills, String status) {
         if(tvName == null) {
@@ -112,9 +111,6 @@ public class MeFragment extends Fragment {
     }
 
 
-
-=======
->>>>>>> origin/master
     @Override
     public void onDetach() {
         super.onDetach();

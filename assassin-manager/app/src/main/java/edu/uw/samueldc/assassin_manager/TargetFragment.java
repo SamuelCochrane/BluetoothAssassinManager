@@ -18,9 +18,12 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import org.altbeacon.beacon.Beacon;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.HashMap;
 
 
 /**
@@ -40,7 +43,7 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
 
     static String targetName;
     static String targetID;
-    static float targetDistance;
+    static Double targetDistance;
     static boolean inRange;
 
     String playerScore;
@@ -53,8 +56,9 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
     ValueEventListener targetListener;
     Firebase ref;
 
+    private ValueEventListener listener;
 
-
+    private static final double KILL_RANGE = 5.0f;
 
     public static TargetFragment newInstance(String name, String room, String myID, String targetID) {
         TargetFragment fragment = new TargetFragment();
@@ -82,6 +86,14 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
         // Required empty public constructor
     }
 
+    // helper method for main activity to call when updated target's data
+    public void updateTarget(Beacon target) {
+        if (target != null) {
+            targetDistance = target.getDistance();
+            set(targetName, targetDistance);
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -91,51 +103,97 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
         b.setOnClickListener(this);
 
 
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom + "/users");
 
-        ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
-        final ArrayList<String> data = new ArrayList<String>();
-        targetListener = new ValueEventListener() {
+        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "Starting data gather...");
+//                            dataSnapshot.getValue();
+
+                ArrayList<String> roomUsers = new ArrayList<String>();
+
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    data.add(child.getValue().toString());
+                    roomUsers.add(child.getKey());
                 }
 
-                Log.i(TAG,"Data List: "+data.toString());
+                for (final String userID : roomUsers) {
+                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                    final HashMap<String, String> data = new HashMap<String, String>();
 
-                //TODO: actually get the targets distance for realskies
-                String tName = data.get(5);
+                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            data.clear();
+                            if (dataSnapshot.child("target").getValue().toString().equalsIgnoreCase(targetID)) {
+                                Log.d(TAG, "========= FOUND TARGET!!!");
+                                Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                targetName = dataSnapshot.child("name").getValue().toString();
+                                set(targetName, null);
+                            }
+                        }
 
-                float tDistance = 2.5123152131f; //data.get(-);
-                set(tName, tDistance);
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                        }
+                    });
 
+                }
             }
+
             @Override
             public void onCancelled(FirebaseError firebaseError) {
                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
             }
-        };
-        ref.addValueEventListener(targetListener);
+        });
+
+//        fireBaseRef.addValueEventListener(listener);
+
+//        ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
+//        final ArrayList<String> data = new ArrayList<String>();
+//        targetListener = new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                Log.i(TAG, "Starting data gather...");
+//                for (DataSnapshot child : dataSnapshot.getChildren()) {
+//                    data.add(child.getValue().toString());
+//                }
+//
+//            }
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+//            }
+//        };
+
 
         return v;
     }
 
 
-    private void set(String targetName, float distance) {
-        if(tvTargetName == null) {
-            tvStatus = (TextView) getView().findViewById(R.id.targetSpottedText);
-            tvTargetName = (TextView) getView().findViewById(R.id.targetSpottedNameText);
-            tvTargetDistance = (TextView) getView().findViewById(R.id.targetSpottedDistance);
-            killButton = (Button) getView().findViewById(R.id.killButton);
-        }
+    private void set(String targetName, Double distance) {
+
+        tvStatus = (TextView) getView().findViewById(R.id.targetSpottedText);
+        tvTargetName = (TextView) getView().findViewById(R.id.targetSpottedNameText);
+        tvTargetDistance = (TextView) getView().findViewById(R.id.targetSpottedDistance);
+        killButton = (Button) getView().findViewById(R.id.killButton);
 
         this.targetName = targetName;
         this.targetDistance = distance;
         this.inRange = isInRange(distance);
 
-        tvTargetName.setText(targetName);
-        String targetDistanceText = new DecimalFormat("#.00m").format(targetDistance);
+        if (targetName != null) {
+            tvTargetName.setText(targetName);
+        }
+
+
+        String targetDistanceText;
+        if (distance != null) {
+            targetDistanceText = new DecimalFormat("#.00m").format(targetDistance);
+        } else {
+            targetDistanceText = "Not Detected";
+        }
+
         tvTargetDistance.setText(targetDistanceText);
         killButton.setClickable(inRange);
         if(inRange) {
@@ -144,14 +202,14 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
             tvStatus.setText(R.string.target_spotted_text_not_in_range);
         }
 
-
-
     }
 
-    private float killRange = 5.0f;
-    public boolean isInRange(float distance) {
-        return (distance < killRange);
 
+    public boolean isInRange(Double distance) {
+        if (distance != null) {
+            return (distance < KILL_RANGE);
+        }
+        return false;
     }
 
     @Override
