@@ -28,10 +28,40 @@ public class TimerActivity extends AppCompatActivity {
     private HashMap<String, HashMap<String, String>> userData;
     private String userID, room;
     private long startTime;
+    private Bundle bundleFromLastActivity;
 
     static Timer timer;
     static TimerTask task;
 
+
+    public void onClickEnter(View view) {
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+
+        Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
+
+        fireBaseRef.child("timer").setValue("0");
+
+        startTime = 0;
+
+        // Make sure you don't have some async issue here
+        Intent intent = new Intent(TimerActivity.this, MainActivity.class);
+        Bundle mainBundle = new Bundle();
+        mainBundle.putString("userID", userID);
+        mainBundle.putString("room", room);
+        mainBundle.putSerializable("userData", bundleFromLastActivity.getSerializable("userData"));
+        intent.putExtras(bundleFromLastActivity);
+
+        fireBaseRef.removeEventListener(listener);
+
+
+
+        task.cancel();
+        timer.cancel();
+        timer = null;
+
+
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,59 +70,59 @@ public class TimerActivity extends AppCompatActivity {
 
         userData = new HashMap<String, HashMap<String, String>>();
 
-        final Bundle bundle = getIntent().getExtras();
-        if(bundle != null) {
+        bundleFromLastActivity = getIntent().getExtras();
+        if(bundleFromLastActivity != null) {
 //            userData = (HashMap) bundle.getSerializable("userData");
-            userID = bundle.getString("userID");
-            startTime = bundle.getLong("startTime");
-            room = bundle.getString("room");
+            userID = bundleFromLastActivity.getString("userID");
+            startTime = bundleFromLastActivity.getLong("startTime");
+            room = bundleFromLastActivity.getString("room");
         }
 
         adjustUsers();
 
 
         timer = new Timer();
-        task = new TimerTask(bundle);
+        task = new TimerTask(bundleFromLastActivity);
         timer.schedule(task, 0, 1000);
 
 
 
 
 
-        Button start = (Button) findViewById(R.id.btnStart);
-
-        start.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
-
-                Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
-
-                fireBaseRef.child("timer").setValue("0");
-
-                startTime = 0;
-
-                // Make sure you don't have some async issue here
-                Intent intent = new Intent(TimerActivity.this, MainActivity.class);
-                Bundle mainBundle = new Bundle();
-                mainBundle.putString("userID", userID);
-                mainBundle.putString("room", room);
-                mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
-                intent.putExtras(bundle);
-
-                fireBaseRef.removeEventListener(listener);
-
-
-
-                task.cancel();
-                timer.cancel();
-                timer = null;
-
-
-                startActivity(intent);
-
-            }
-        });
+//        Button start = (Button) findViewById(R.id.btnStart);
+//
+//        start.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+//
+//                Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
+//
+//                fireBaseRef.child("timer").setValue("0");
+//
+//                startTime = 0;
+//
+//                // Make sure you don't have some async issue here
+//                Intent intent = new Intent(TimerActivity.this, MainActivity.class);
+//                Bundle mainBundle = new Bundle();
+//                mainBundle.putString("userID", userID);
+//                mainBundle.putString("room", room);
+//                mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
+//                intent.putExtras(bundle);
+//
+//                fireBaseRef.removeEventListener(listener);
+//
+//
+//
+//                task.cancel();
+//                timer.cancel();
+//                timer = null;
+//
+//
+//                startActivity(intent);
+//
+//            }
+//        });
 
 
     }
@@ -183,16 +213,16 @@ public class TimerActivity extends AppCompatActivity {
                     listener = new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            data.clear();
-                            for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                data.put(child.getKey(), child.getValue().toString());
+                            if (dataSnapshot.exists()) {
+                                data.clear();
+                                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                    data.put(child.getKey(), child.getValue().toString());
+                                }
+
+                                userData.put(userID, data);
+
+                                adjustTargets();
                             }
-
-                            userData.put(userID, data);
-
-                            adjustTargets();
-
-
                         }
 
                         @Override

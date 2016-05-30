@@ -42,5 +42,6 @@
         android:layout_gravity="center_horizontal"
         android:text="Enter Game"
         android:background="#324398"
-        android:textColor="#ffffff" />
+        android:textColor="#ffffff"
+        />
 </LinearLayout>

@@ -54,6 +54,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements ServiceConnection, BeaconReceiver.OnBeaconReceivedListener,GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
     static final int NUM_SCREEN = 4;
+    static final int LOBBY_POSITION = 0;
+    static final int MAP_POSITION = 1;
+    static final int ME_POSITION = 2;
+    static final int TARGET_POSITION = 3;
 
     private static final String TAG = "MainActivity";
 
@@ -183,18 +187,21 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         fireBaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
+                if (dataSnapshot.child("status").getValue() != null) {
+                    if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
 //                    Log.d(TAG, "========= USER ALIVE!!");
-                } else {
-                    // if dead, switch to end activity screen and close background beacon service
-                    stopService(new Intent(MainActivity.this, BeaconApplication.class));
-                    finish();
-                    startActivity(new Intent(MainActivity.this, EndActivity.class));
+                    } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_DEAD)){
+                        // if dead, switch to end activity screen and close background beacon service
+                        stopService(new Intent(MainActivity.this, BeaconApplication.class));
+                        finish();
+                        startActivity(new Intent(MainActivity.this, EndActivity.class));
+                    }
+
+                    if (dataSnapshot.child("target") != null) {
+                        targetID = dataSnapshot.child("target").getValue().toString();
+                    }
                 }
 
-                if (dataSnapshot.child("target") != null) {
-                    targetID = dataSnapshot.child("target").getValue().toString();
-                }
             }
 
             @Override
@@ -310,31 +317,36 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
             Beacon target = bundle.getParcelable("target");
 
+            TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
+            if (targetFrag != null) {
+                Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+                targetFrag.updateTarget(target); // pass null if target not found
+            }
 //            Log.d(TAG, "++++++++ YOU GET TARGET: " + target.toString());
-            if (target != null) {
-                Log.d(TAG, "============ YOUR TARGET: " + target.toString());
-                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
-                if (targetFrag != null) {
-                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-                    targetFrag.updateTarget(target);
-                }
-//                TargetFragment targetFrag  = (TargetFragment) getSupportFragmentManager().findFragmentById(R.id.targetFragment);
+//            if (target != null) {
+//                Log.d(TAG, "============ YOUR TARGET: " + target.toString());
+//                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
 //                if (targetFrag != null) {
 //                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
 //                    targetFrag.updateTarget(target);
 //                }
-
-//                if (beacons.get("hunter") != null) {
-//                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
+////                TargetFragment targetFrag  = (TargetFragment) getSupportFragmentManager().findFragmentById(R.id.targetFragment);
+////                if (targetFrag != null) {
+////                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+////                    targetFrag.updateTarget(target);
+////                }
+//
+////                if (beacons.get("hunter") != null) {
+////                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
+////                }
+//            } else {
+//                Log.d(TAG, "============ YOUR TARGET IS NULL: ");
+//                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
+//                if (targetFrag != null) {
+//                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+//                    targetFrag.updateTarget(target);
 //                }
-            } else {
-                Log.d(TAG, "============ YOUR TARGET IS NULL: ");
-                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
-                if (targetFrag != null) {
-                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-                    targetFrag.updateTarget(target);
-                }
-            }
+//            }
 
 
         } else if (str.equals(BeaconApplication.RANGING_DONE)) {
@@ -404,6 +416,52 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         {
 
         }
+
+        // stop beacon service as well
+        Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
+        stopService(svc);
+
+        // check if itself is the last user in this room, delete this room if true
+//        Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
+//
+//        roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                if (dataSnapshot.getChildrenCount() <= 1) {
+//                    // delete the room
+//                    Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+//                    roomDeleteRef.removeValue();
+//                } else {
+//                    // if the user is not the only one, delete this user in that room
+//                    Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
+//
+//                    roomRef.removeValue();
+//                }
+//
+//                // also, remove this user in firebase
+//                Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+//
+//                userRef.removeValue();
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+//            }
+//        });
+
+
+//        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+//            }
+//        });
         super.onDestroy();
     }
 
@@ -465,14 +523,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         @Override
         public Fragment getItem(int position) {
             switch (position) {
-                case 0:
+                case LOBBY_POSITION:
                     return new LobbyFragment().newInstance(userData.get("name"),userData.get("room"));
-                case 1:
+                case MAP_POSITION:
                     return new MapFragment().newInstance(userData.get("room"),originLat.toString(),originLog.toString());
-                case 2:
+                case ME_POSITION:
 //                    return new MeFragment();
                     return new MeFragment().newInstance(userData.get("name"), userData.get("room"), userID);
-                case 3:
+                case TARGET_POSITION:
                     return new TargetFragment().newInstance(userData.get("name"), userData.get("room"), userID, targetID);
                 default:
                     return null;
@@ -554,5 +612,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             this.finish();
             startActivity(starterIntent);
         }
+    }
+
+    // create a new enter activity and clear all back stack!
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+        Intent intent = new Intent(MainActivity.this, EnterActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+
     }
 }

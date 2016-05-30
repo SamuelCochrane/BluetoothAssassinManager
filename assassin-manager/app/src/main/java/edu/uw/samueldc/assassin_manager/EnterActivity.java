@@ -28,6 +28,8 @@ public class EnterActivity extends AppCompatActivity {
     private static final String TAG = "***EnterActivity***";
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    public static final String STATUS_ALIVE = "alive";
+    public static final String STATUS_DEAD = "dead";
 
     public EnterActivity() {
         // Required empty public constructor
@@ -308,6 +310,7 @@ public class EnterActivity extends AppCompatActivity {
                     String roomName = etRoomName.getText().toString();
 
                     Intent intent = new Intent(EnterActivity.this, TimerActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY); // prevent it from saving to backstack
                     Bundle bundle = new Bundle();
                     bundle.putString("userID", userID);
                     bundle.putString("room", room);
@@ -347,7 +350,7 @@ public class EnterActivity extends AppCompatActivity {
         userData.put("kills", "0");
         userData.put("latitude", "47.6553");
         userData.put("longitude", "-122.3035");
-        userData.put("status", "alive");
+        userData.put("status", STATUS_ALIVE);
         userData.put("target", "");
 
 

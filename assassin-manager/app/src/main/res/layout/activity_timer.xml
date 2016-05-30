@@ -51,7 +51,8 @@
         android:layout_gravity="center_horizontal"
         android:text="We're all ready,\nstart the game!"
         android:background="#3a9832"
-        android:textColor="#ffffff"/>
+        android:textColor="#ffffff"
+        android:onClick="onClickEnter"/>
 
 
 </LinearLayout>

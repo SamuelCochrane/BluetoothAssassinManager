@@ -6,14 +6,4 @@
         android:defaultValue="true"
         />
 
-    <SwitchPreference
-        android:key="pref_night"
-        android:title="Night Mode"
-        android:defaultValue="false"/>
-
-    <SwitchPreference
-        android:key="language???"
-        android:title="App Language"
-        android:defaultValue="true"/>
-
 </PreferenceScreen>

@@ -250,7 +250,7 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
             }
         });
-        targetFireBaseRef.child("status").setValue("dead");
+        targetFireBaseRef.child("status").setValue(EnterActivity.STATUS_DEAD);
 
 
 

@@ -87,62 +87,62 @@ public class LobbyFragment extends ListFragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
+                if (dataSnapshot.exists()) {
+                    ArrayList<String> roomUsers = new ArrayList<String>();
 
-                ArrayList<String> roomUsers = new ArrayList<String>();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        roomUsers.add(child.getKey());
+                    }
 
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    roomUsers.add(child.getKey());
-                }
+                    Log.i(TAG, "List: " + roomUsers.toString());
+                    for (final String userID : roomUsers) {
+                        Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
 
-                Log.i(TAG, "List: " + roomUsers.toString());
-                for (final String userID : roomUsers) {
-                    Firebase ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-
-                    final HashMap<String, String> data = new HashMap<String, String>();
-                    Log.i(TAG, "UserID: " + ref.getKey());
+                        final HashMap<String, String> data = new HashMap<String, String>();
+                        Log.i(TAG, "UserID: " + ref.getKey());
 
 
-                    ref.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            data.clear();
-                            for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                data.put(child.getKey(), child.getValue().toString());
-                            }
+                        ref.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    data.clear();
+                                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                        data.put(child.getKey(), child.getValue().toString());
+                                    }
 
-                            Log.v(TAG, "Data: " + data);
-                            
-                            userData.put(userID, data);
+                                    Log.v(TAG, "Data: " + data);
+
+                                    userData.put(userID, data);
 //                            Log.v(TAG, "UserData List: " + userData);
 //                            Log.v(TAG,"Data List: "+data.toString());
 
-                            updateReferences();
+                                    updateReferences();
 
-                            if (getActivity() != null) {
-                                if(names != null) {
-                                    setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
-                                            names, status, kills, null)); //null -> TypedArray icons
+                                    if (getActivity() != null) {
+                                        if(names != null) {
+                                            setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
+                                                    names, status, kills, null)); //null -> TypedArray icons
+                                        }
+                                    }
                                 }
                             }
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                            }
+                        });
+                    }
 
-                        }
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
-                        }
-                    });
+
+
+                    updateReferences();
+
+                    if (getActivity() != null) {
+                        setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
+                                names, status, kills, null)); //null -> TypedArray icons
+                    }
                 }
-
-
-
-                updateReferences();
-
-                setListAdapter(new ImageAndTextAdapter(getContext(), R.layout.fragment_lobby_item,
-                        names, status, kills, null)); //null -> TypedArray icons
-
-
-
-
             }
 
             @Override
@@ -173,7 +173,7 @@ public class LobbyFragment extends ListFragment {
 
 
 
-            String name = data.get("name").toString();
+            String name = data.get("name");
 //            Log.i(TAG, "---NAME: " + name);
             namesArrayList.add(name);
 
@@ -242,6 +242,7 @@ public class LobbyFragment extends ListFragment {
         public ImageAndTextAdapter(Context ctx, int viewResourceId,
                                    String[] names, String[] status, String[] kills, TypedArray icons) {
 
+
             super(ctx, viewResourceId, names);
 
             mInflater = (LayoutInflater) ctx.getSystemService(
@@ -285,7 +286,7 @@ public class LobbyFragment extends ListFragment {
             tvKills.setText(mKills[position]);
 
             ImageView ivStatus = (ImageView) convertView.findViewById(R.id.itemIcon);
-            if(mStatus[position].equals("dead")) {
+            if(mStatus[position].equals(EnterActivity.STATUS_DEAD)) {
                 ivStatus.setImageResource(R.drawable.ic_dead);
             } else if (mStatus[position].equals("target")) {
                 ivStatus.setImageResource(R.drawable.ic_target);

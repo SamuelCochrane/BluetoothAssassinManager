@@ -127,7 +127,7 @@ public class MapFragment extends Fragment {
                               if (getActivity() != null) {
                                   marker.setPosition(location);
                                   marker.setTitle(dataSnapshot.child("name").getValue().toString());
-                                  if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase("alive")) {
+                                  if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
                                       //    if (marker != null) marker.remove();
                                       marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
 
