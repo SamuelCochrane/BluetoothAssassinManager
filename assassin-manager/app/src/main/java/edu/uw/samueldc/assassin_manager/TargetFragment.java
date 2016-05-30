@@ -141,11 +141,8 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
                             }
                         });
-
                     }
                 }
-
-
             }
 
             @Override
@@ -153,26 +150,6 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                 Log.e(TAG, "Error when accessing DB: " + firebaseError);
             }
         });
-
-//        fireBaseRef.addValueEventListener(listener);
-
-//        ref = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
-//        final ArrayList<String> data = new ArrayList<String>();
-//        targetListener = new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                Log.i(TAG, "Starting data gather...");
-//                for (DataSnapshot child : dataSnapshot.getChildren()) {
-//                    data.add(child.getValue().toString());
-//                }
-//
-//            }
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
-//            }
-//        };
-
 
         return v;
     }
@@ -236,8 +213,6 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
     //called by killButton
     public void killTarget() {
 
-
-
         Firebase targetFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
         targetFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -275,15 +250,6 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
             }
 
         });
-
-
-
-
-
-
-
-
-
 
 /*        FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

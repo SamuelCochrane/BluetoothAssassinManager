@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private Intent starterIntent;
 
-
     private GoogleApiClient myGoogleApiClient;
 
     @Override
@@ -106,8 +105,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // ======= theme stuff
-//        themeID = savedInstanceState.getInt("theme");
-//        Log.d(TAG, "========== THEME ID: " + themeID);
         if(savedInstanceState != null && savedInstanceState.getInt("theme", -1) != -1) {
 
             themeID = savedInstanceState.getInt("theme");
@@ -115,21 +112,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             this.setTheme(themeID);
         }
 
-//        this.setTheme(R.style.AppTheme_Night);
-
         super.onCreate(savedInstanceState);
-
-
-
 
         Firebase.setAndroidContext(this);
         setContentView(R.layout.activity_main);
 
         // store intent if needs to recreate this activity
         starterIntent = getIntent();
-
-
-    //    nightMode(MainActivity.this);
 
         // ============= deal with toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -167,8 +156,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         });
 
-
-
         // ============ db stuff
         // Passed bundle info to use for the database
         Bundle bundle = getIntent().getExtras();
@@ -179,19 +166,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             Log.d(TAG, "========== USER INFO: " + userData.toString());
         }
 
-
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-//        if (curLocation != null) {
-//            fireBaseRef.child("latitude").setValue(curLocation.getLatitude());
-//            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
-//        }
 
         fireBaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("status").getValue() != null) {
                     if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
-//                    Log.d(TAG, "========= USER ALIVE!!");
+
                     } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_DEAD)){
                         // if dead, switch to end activity screen and close background beacon service
                         stopService(new Intent(MainActivity.this, BeaconApplication.class));
@@ -215,14 +197,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         // ============= beacon stuff
         // and register for broadcast receiver from beacon service
-//        if (!isRegistered) {
-//            IntentFilter filter = new IntentFilter();
-//            filter.addAction(BeaconApplication.BROADCAST_BEACON);
-//            filter.addAction(BeaconApplication.RANGING_DONE);
-//            registerReceiver(receiver, filter);
-//            isRegistered = true;
-//        }
-
         receiver = new BeaconReceiver();
         receiver.setOnBeaconReceivedListener(this);
 //        IntentFilter filter = new IntentFilter();
@@ -230,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        filter.addAction(BeaconApplication.RANGING_DONE);
 //        registerReceiver(receiver, filter);
 //        isRegistered = true;
+
         // start the beacon service in the backgorund thread
         // and pass userName and roonName to Beacon
         Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
@@ -237,21 +212,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         userInfo.putSerializable("userData", userData);
         intent.putExtras(userInfo);
         startService(intent);
-
-
-        // Watch for button clicks.
-        Button button = (Button) findViewById(R.id.goto_first);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                viewPager.setCurrentItem(0);
-            }
-        });
-        button = (Button) findViewById(R.id.goto_last);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                viewPager.setCurrentItem(NUM_SCREEN - 1);
-            }
-        });
 
 
         if (myGoogleApiClient == null) {
@@ -267,96 +227,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         originLog = originLocation.getLongitude();
 
 
-    }
-
-    private Location getLastKnownLocation() {
-        locationManager = (LocationManager)MainActivity.this.getSystemService(LOCATION_SERVICE);
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            try {
-                Location l = locationManager.getLastKnownLocation(provider);
-                if (l == null) {
-                    continue;
-                }
-                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                    // Found best last known location: %s", l);
-                    bestLocation = l;
-                }
-            } catch (SecurityException e) {
-            }
-        }
-        Log.v(TAG,"Origin Location is: "+bestLocation.toString());
-        return bestLocation;
-    }
-
-
-    @Override
-    public void onLocationChanged(Location location) {
-        curLocation = location;
-
-        if (curLocation != null) {
-            fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-            fireBaseRef.child("latitude").setValue(curLocation.getLatitude());
-            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
-        }
-        Log.v(TAG, "Current Location: " + curLocation.getLatitude() + ", " + curLocation.getLongitude());
-    }
-
-
-    // when received beacon list
-    @Override
-    public void onBeaconReceived(Context context, Intent intent) {
-        String str = intent.getAction();
-        Log.d(TAG, "========= YOU RECEIVE SOMETHING: " + str);
-        // if receive beacons, try to get extras
-        if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
-//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
-            // a map of hunter and target
-            Bundle bundle = intent.getExtras();
-//            String strings = intent.getExtras().getString("beaconStr");
-            Log.d(TAG, "+++++++++ YOU GET BUNDLE: " + bundle);
-//            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
-
-            Beacon target = bundle.getParcelable("target");
-
-            TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
-            if (targetFrag != null) {
-                Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-                targetFrag.updateTarget(target); // pass null if target not found
-            }
-//            Log.d(TAG, "++++++++ YOU GET TARGET: " + target.toString());
-//            if (target != null) {
-//                Log.d(TAG, "============ YOUR TARGET: " + target.toString());
-//                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
-//                if (targetFrag != null) {
-//                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-//                    targetFrag.updateTarget(target);
-//                }
-////                TargetFragment targetFrag  = (TargetFragment) getSupportFragmentManager().findFragmentById(R.id.targetFragment);
-////                if (targetFrag != null) {
-////                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-////                    targetFrag.updateTarget(target);
-////                }
-//
-////                if (beacons.get("hunter") != null) {
-////                    Log.d(TAG, "============ YOUR HUNTER: " + beacons.get("hunter").toString());
-////                }
-//            } else {
-//                Log.d(TAG, "============ YOUR TARGET IS NULL: ");
-//                TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(3);
-//                if (targetFrag != null) {
-//                    Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
-//                    targetFrag.updateTarget(target);
-//                }
-//            }
-
-
-        } else if (str.equals(BeaconApplication.RANGING_DONE)) {
-            Log.d(TAG, "ENTER A NEW BEACON REGION!");
-        } else {
-            Log.d(TAG, "NOOOOO BEACON!!");
-        }
     }
 
     @Override
@@ -409,6 +279,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         myGoogleApiClient.disconnect();
     }
 
+    // create a new enter activity and clear all back stack!
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+        Intent intent = new Intent(MainActivity.this, EnterActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+
+    }
+
     @Override
     protected void onDestroy() {
         Log.v(TAG, "Activity destroyed");
@@ -455,19 +336,113 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             });
         }
 
-//        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
-//            }
-//        });
         super.onDestroy();
     }
+
+    // when received beacon list
+    @Override
+    public void onBeaconReceived(Context context, Intent intent) {
+        String str = intent.getAction();
+        Log.d(TAG, "========= YOU RECEIVE SOMETHING: " + str);
+        // if receive beacons, try to get extras
+        if(str.equals(BeaconApplication.BROADCAST_BEACON)) {
+//                Beacon beacon = intent.getParcelableExtra(BeaconApplication.BROADCAST_BEACON);
+            // a map of hunter and target
+            Bundle bundle = intent.getExtras();
+//            String strings = intent.getExtras().getString("beaconStr");
+            Log.d(TAG, "+++++++++ YOU GET BUNDLE: " + bundle);
+//            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
+
+            Beacon target = bundle.getParcelable("target");
+
+            TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
+            if (targetFrag != null) {
+                Log.d(TAG, "============ YOU ARE SETTING FRAGMENT");
+                targetFrag.updateTarget(target); // pass null if target not found
+            }
+
+
+        } else if (str.equals(BeaconApplication.RANGING_DONE)) {
+            Log.d(TAG, "ENTER A NEW BEACON REGION!");
+        } else {
+            Log.d(TAG, "NOOOOO BEACON!!");
+        }
+    }
+
+
+    private Location getLastKnownLocation() {
+        locationManager = (LocationManager)MainActivity.this.getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            try {
+                Location l = locationManager.getLastKnownLocation(provider);
+                if (l == null) {
+                    continue;
+                }
+                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                    // Found best last known location: %s", l);
+                    bestLocation = l;
+                }
+            } catch (SecurityException e) {
+            }
+        }
+        return bestLocation;
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        curLocation = location;
+
+        if (curLocation != null) {
+            fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+            fireBaseRef.child("latitude").setValue(curLocation.getLatitude());
+            fireBaseRef.child("longitude").setValue(curLocation.getLongitude());
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        // build GPS request
+        LocationRequest request = new LocationRequest();
+        request.setInterval(1000);
+        request.setFastestInterval(500);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        // check permission from the user
+        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, request, this);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_CODE);
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+    }
+
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permission[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_CODE:
+                // if have permission
+                if (permission.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    onConnected(null);
+                }
+        }
+        super.onRequestPermissionsResult(requestCode,permission,grantResults);
+    }
+
+
 
     // Menu icons are inflated just as they were with actionbar
     @Override
@@ -559,75 +534,5 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         public Fragment getRegisteredFragment(int position) {
             return registeredFragments.get(position);
         }
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        // build GPS request
-        LocationRequest request = new LocationRequest();
-        request.setInterval(1000);
-        request.setFastestInterval(500);
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        // check permission from the user
-        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, request, this);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_CODE);
-        }
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permission[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_CODE:
-                // if have permission
-                if (permission.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    onConnected(null);
-                }
-        }
-        super.onRequestPermissionsResult(requestCode,permission,grantResults);
-    }
-
-    public void nightMode(Context context) {
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        // determine switch to night mode or not
-        boolean nightMode = prefs.getBoolean("pref_night",true);
-        if (nightMode) {
-            themeID = R.style.AppTheme_Night;
-            this.setTheme(themeID);
-            this.finish();
-            startActivity(starterIntent);
-        } else {
-            themeID = R.style.AppTheme_Daylight;
-            this.setTheme(themeID);
-            this.finish();
-            startActivity(starterIntent);
-        }
-    }
-
-    // create a new enter activity and clear all back stack!
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
-        Intent intent = new Intent(MainActivity.this, EnterActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-
     }
 }

@@ -87,10 +87,6 @@ public class TimerActivity extends AppCompatActivity {
         task = new TimerTask(bundleFromLastActivity);
         timer.schedule(task, 0, 1000);
 
-
-
-
-
 //        Button start = (Button) findViewById(R.id.btnStart);
 //
 //        start.setOnClickListener(new View.OnClickListener() {
@@ -125,8 +121,6 @@ public class TimerActivity extends AppCompatActivity {
 //
 //            }
 //        });
-
-
     }
 
     @Override
@@ -151,7 +145,6 @@ public class TimerActivity extends AppCompatActivity {
 
     public void adjustTargets() {
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users");
-
 
         String previousID = "";
         String firstID = "";
@@ -256,9 +249,6 @@ public class TimerActivity extends AppCompatActivity {
             bundle = b;
         }
 
-
-
-
         @Override
         public void run() {
 
@@ -309,8 +299,6 @@ public class TimerActivity extends AppCompatActivity {
 
                 }
             }
-
-
         }
     }
 }
