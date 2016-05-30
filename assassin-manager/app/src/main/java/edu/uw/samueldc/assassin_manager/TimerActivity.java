@@ -78,6 +78,8 @@ public class TimerActivity extends AppCompatActivity {
             room = bundleFromLastActivity.getString("room");
         }
 
+        Log.d(TAG, "============ USER ROOM: " + room);
+
         adjustUsers();
 
 
@@ -155,7 +157,7 @@ public class TimerActivity extends AppCompatActivity {
         String firstID = "";
         String firstUserID = "";
 
-
+        Log.d(TAG, "======== USER NUM: " + userData.keySet().size());
         for(String s : userData.keySet()) {
 
             HashMap<String, String> data = userData.get(s);
@@ -164,9 +166,10 @@ public class TimerActivity extends AppCompatActivity {
             Log.v(TAG, "current userData: " + userData.get(s));
             Log.v(TAG, "timerAct data: " + data);
 
-            // target is index 10
             if(firstID.length() > 0) {
 
+                Log.d(TAG, "++++++++== CURRENT USER: " + userData.get(s).toString());
+                Log.d(TAG, "++++++++++ SET TARGET");
                 data.put("target", previousID);
                 fireBaseRef.child(s).setValue(data);
             } else {
@@ -189,7 +192,7 @@ public class TimerActivity extends AppCompatActivity {
 
     // Updates userData variable to hold info for all current users
     public void adjustUsers() {
-        Firebase.setAndroidContext(this);
+//        Firebase.setAndroidContext(this);
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 

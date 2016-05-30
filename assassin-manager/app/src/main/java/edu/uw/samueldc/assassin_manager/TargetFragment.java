@@ -111,36 +111,41 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 //                            dataSnapshot.getValue();
+                if (dataSnapshot.exists()) {
+                    ArrayList<String> roomUsers = new ArrayList<String>();
 
-                ArrayList<String> roomUsers = new ArrayList<String>();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        roomUsers.add(child.getKey());
+                    }
 
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    roomUsers.add(child.getKey());
-                }
+                    for (final String userID : roomUsers) {
+                        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                        final HashMap<String, String> data = new HashMap<String, String>();
 
-                for (final String userID : roomUsers) {
-                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-                    final HashMap<String, String> data = new HashMap<String, String>();
-
-                    fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            data.clear();
-                            if (dataSnapshot.child("target").getValue().toString().equalsIgnoreCase(targetID)) {
-                                Log.d(TAG, "========= FOUND TARGET!!!");
-                                Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
-                                targetName = dataSnapshot.child("name").getValue().toString();
-                                set(targetName, null);
+                        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    data.clear();
+                                    if (dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(targetID)) {
+                                        Log.d(TAG, "========= FOUND TARGET!!!");
+                                        Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                        targetName = dataSnapshot.child("name").getValue().toString();
+                                        set(targetName, null);
+                                    }
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
-                        }
-                    });
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                            }
+                        });
 
+                    }
                 }
+
+
             }
 
             @Override

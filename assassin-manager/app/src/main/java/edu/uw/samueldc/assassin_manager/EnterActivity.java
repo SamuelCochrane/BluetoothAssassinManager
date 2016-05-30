@@ -310,7 +310,6 @@ public class EnterActivity extends AppCompatActivity {
                     String roomName = etRoomName.getText().toString();
 
                     Intent intent = new Intent(EnterActivity.this, TimerActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY); // prevent it from saving to backstack
                     Bundle bundle = new Bundle();
                     bundle.putString("userID", userID);
                     bundle.putString("room", room);

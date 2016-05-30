@@ -235,6 +235,10 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
                     final Collection<Beacon> beaconList = beacons;
 
+                    for (Beacon beacon : beaconList) {
+                        Log.d(TAG, "========= RECEIVED BEACON:" + beacon.toString());
+                    }
+
                     final String room = userData.get("room");
                     final String username = userData.get("name");
                     final String nameHash = userData.get("nameHash");
@@ -396,7 +400,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                 }
 
                 if (hunter != null) {
-                    Log.d(TAG, "+++++++++++ HUNTER FOUND: " + prey.toString());
+                    Log.d(TAG, "+++++++++++ HUNTER FOUND: " + hunter.toString());
                     beaconMap.put("hunter", hunter);
                 }
                 if (prey != null) {

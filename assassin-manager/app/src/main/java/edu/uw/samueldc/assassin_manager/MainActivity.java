@@ -88,8 +88,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private final int PERMISSION_CODE = 1;
 
     private int themeID = -1;
+    private boolean isSettingsClick = false;
 
     private Intent starterIntent;
+
 
     private GoogleApiClient myGoogleApiClient;
 
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // ============ db stuff
         // Passed bundle info to use for the database
         Bundle bundle = getIntent().getExtras();
-        if (bundle != null && userData == null) {
+        if (bundle != null) {
             userData = (HashMap) bundle.getSerializable("userData");
             userID = bundle.getString("userID");
             room = bundle.getString("room");
@@ -417,39 +419,40 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         }
 
-        // stop beacon service as well
-        Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
-        stopService(svc);
+        // stop beacon service as well only if it is not switch mode behavior
+        if (!isSettingsClick) {
+            Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
+            stopService(svc);
 
-        // check if itself is the last user in this room, delete this room if true
-//        Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
-//
-//        roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                if (dataSnapshot.getChildrenCount() <= 1) {
-//                    // delete the room
-//                    Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
-//                    roomDeleteRef.removeValue();
-//                } else {
-//                    // if the user is not the only one, delete this user in that room
-//                    Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
-//
-//                    roomRef.removeValue();
-//                }
-//
-//                // also, remove this user in firebase
-//                Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-//
-//                userRef.removeValue();
-//            }
-//
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//                Log.e(TAG, "Error when accessing DB: " + firebaseError);
-//            }
-//        });
+            // check if itself is the last user in this room, delete this room if true
+            Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
+            roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getChildrenCount() <= 1) {
+                        // delete the room
+                        Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+                        roomDeleteRef.removeValue();
+                    } else {
+                        // if the user is not the only one, delete this user in that room
+                        Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
+
+                        roomRef.removeValue();
+                    }
+
+                    // also, remove this user in firebase
+                    Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+
+                    userRef.removeValue();
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                }
+            });
+        }
 
 //        ref.addListenerForSingleValueEvent(new ValueEventListener() {
 //            @Override
@@ -477,6 +480,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.miSettings) {
+            isSettingsClick = true;
             Log.v(TAG, "Start settings");
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             startActivity(intent);
@@ -489,6 +493,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             } else {
                 themeID = R.style.AppTheme_Night;
             }
+            isSettingsClick = true;
             this.recreate();
             return true;
         }
