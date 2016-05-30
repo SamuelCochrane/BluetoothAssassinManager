@@ -36,20 +36,23 @@ public class MapFragment extends Fragment {
 
 
     private static String myRoom;
+    private static String myName;
     private static String myLatitude;
     private static String myLongitude;
     private ArrayList<String> roomUsers = new ArrayList<String>();
-    private Map<String, ArrayList<String>> userData = new HashMap<>();
+//    private Map<String, ArrayList<String>> userData = new HashMap<>();
     LatLng point = new LatLng(47.0,-122.0);
 
     Firebase fireBaseRef;
 
-    public static MapFragment newInstance(String room, String latitude, String longitude) {
+    // get user room, user name, and user origin location from MainActivity bundle
+    public static MapFragment newInstance(String room, String latitude, String longitude, String name) {
         MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
         args.putString("room", room);
         args.putString("latitude",latitude);
         args.putString("longitude",longitude);
+        args.putString("name",name);
         fragment.setArguments(args);
         return fragment;
     }
@@ -62,10 +65,8 @@ public class MapFragment extends Fragment {
             myRoom = getArguments().getString("room");
             myLatitude = getArguments().getString("latitude");
             myLongitude = getArguments().getString("longitude");
+            myName = getArguments().getString("name");
 
-//            ME = getArguments().getString("name");
-//            Log.v(TAG, myRoom);
-//            Log.v(TAG,"My Name is: "+ME);
         }
     }
 
@@ -73,7 +74,7 @@ public class MapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
+        // inflate Google map view
         if (view != null) {
             ViewGroup parent = (ViewGroup) view.getParent();
             if (parent != null)
@@ -95,7 +96,7 @@ public class MapFragment extends Fragment {
 
         fireBaseRef.child(myRoom + "/users").addValueEventListener(new ValueEventListener() {
 
-
+        // when data changes in the database
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
@@ -103,10 +104,14 @@ public class MapFragment extends Fragment {
                 }
 
 //                Log.v(TAG, "List: " + roomUsers.toString());
+
+                // for every user in that room
+
                 for (final String userID : roomUsers) {
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
 //                    Log.v(TAG, "UserID data: " + fireBaseRef.getKey());
 
+                 // add markers in the map
                     final Marker marker;
                     MarkerOptions markerOptions = new MarkerOptions();
                     markerOptions.position(point);
@@ -115,50 +120,60 @@ public class MapFragment extends Fragment {
 //                    final ArrayList<String> data = new ArrayList<String>();
 
                     fireBaseRef.addValueEventListener(new ValueEventListener() {
-                      @Override
-                      public void onDataChange(DataSnapshot dataSnapshot) {
-                          if (dataSnapshot.child("longitude").getValue() != null) {
-                              Double latitude = Double.parseDouble(dataSnapshot.child("latitude").getValue().toString());
-                              Double longitude = Double.parseDouble(dataSnapshot.child("longitude").getValue().toString());
-                              LatLng location = new LatLng(latitude, longitude);
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.child("longitude").getValue() != null) {
+
+                                // get updated location data
+                                Double latitude = Double.parseDouble(dataSnapshot.child("latitude").getValue().toString());
+                                Double longitude = Double.parseDouble(dataSnapshot.child("longitude").getValue().toString());
+                                LatLng location = new LatLng(latitude, longitude);
 
 //                              Log.v(TAG, "Latitude and Longitude: " + latitude + ", " + longitude);
 
-                              if (getActivity() != null) {
-                                  marker.setPosition(location);
-                                  marker.setTitle(dataSnapshot.child("name").getValue().toString());
-                                  if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
-                                      //    if (marker != null) marker.remove();
-                                      marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_alive)));
 
-                                  } else {
-                                      //   if (marker != null) marker.remove();
-                                      marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.map_dead)));
-                                  }
-                              }
+                                // move the marker
+                                if (getActivity() != null) {
+                                    marker.setPosition(location);
+                                    marker.setTitle(dataSnapshot.child("name").getValue().toString());
+
+                                    if (dataSnapshot.child("name").getValue().toString().equals(myName)) {
+                                        marker.setTitle("I'm Here");
+
+                                    } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
+                                        //    if (marker != null) marker.remove();
+                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_default)));
+
+                                    } else {
+                                        //   if (marker != null) marker.remove();
+                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_dead)));
+                                    }
+                            }
 
 
-                          }
+                        }
 
-                      }
+                    }
 
-                      @Override
-                      public void onCancelled(FirebaseError firebaseError) {
+                    @Override
+                    public void onCancelled (FirebaseError firebaseError){
 
-                      }
-                  }
-
-                    );
-
+                    }
                 }
+
+                );
 
             }
 
-            @Override
+        }
+
+        @Override
             public void onCancelled(FirebaseError firebaseError) {
 
             }
         });
+
+        // set the map to original location of the user by default
 
         LatLng myLocation = new LatLng(Double.valueOf(myLatitude),Double.valueOf(myLongitude));
 

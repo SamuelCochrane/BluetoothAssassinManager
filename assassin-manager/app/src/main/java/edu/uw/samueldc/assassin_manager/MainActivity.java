@@ -266,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         originLat = originLocation.getLatitude();
         originLog = originLocation.getLongitude();
 
+
     }
 
     private Location getLastKnownLocation() {
@@ -531,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 case LOBBY_POSITION:
                     return new LobbyFragment().newInstance(userData.get("name"),userData.get("room"));
                 case MAP_POSITION:
-                    return new MapFragment().newInstance(userData.get("room"),originLat.toString(),originLog.toString());
+                    return new MapFragment().newInstance(userData.get("room"),originLat.toString(),originLog.toString(),userData.get("name"));
                 case ME_POSITION:
 //                    return new MeFragment();
                     return new MeFragment().newInstance(userData.get("name"), userData.get("room"), userID);
