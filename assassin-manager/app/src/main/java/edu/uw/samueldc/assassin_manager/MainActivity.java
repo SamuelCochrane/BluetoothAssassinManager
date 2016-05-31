@@ -3,17 +3,15 @@ package edu.uw.samueldc.assassin_manager;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -23,16 +21,14 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -41,13 +37,10 @@ import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 import org.altbeacon.beacon.Beacon;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -282,11 +275,24 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     // create a new enter activity and clear all back stack!
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        finish();
-        Intent intent = new Intent(MainActivity.this, EnterActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+
+        dialog.setCancelable(false);
+        dialog.setIcon(R.drawable.login_icon);
+        dialog.setTitle("Leave Game?");
+        dialog.setMessage("This will remove you from the current game. Are you sure you want to leave?");
+        dialog.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
+                Intent intent = new Intent(MainActivity.this, EnterActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        dialog.show();
+
 
     }
 
@@ -406,8 +412,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     public void onConnected(@Nullable Bundle bundle) {
         // build GPS request
         LocationRequest request = new LocationRequest();
-        request.setInterval(1000);
-        request.setFastestInterval(500);
+        request.setInterval(60000);
+        request.setFastestInterval(60000);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         // check permission from the user

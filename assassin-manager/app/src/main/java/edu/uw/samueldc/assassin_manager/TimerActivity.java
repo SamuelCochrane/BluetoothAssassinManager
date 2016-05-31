@@ -5,14 +5,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.firebase.client.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -185,7 +183,7 @@ public class TimerActivity extends AppCompatActivity {
 
     // Updates userData variable to hold info for all current users
     public void adjustUsers() {
-//        Firebase.setAndroidContext(this);
+        Firebase.setAndroidContext(this);
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
