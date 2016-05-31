@@ -96,6 +96,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     public void onCreate() {
         super.onCreate();
 
+        this.context = this;
         isRunning = true;
 
         Thread serviceThread = new Thread(new Runnable() {
@@ -141,7 +142,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         });
 
         serviceThread.start();
-        this.context = this;
+
     }
 
     @Override
@@ -149,7 +150,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     // when received intent service start command
     // when clip multiple services, it will queue all services
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(TAG, "============= Intent received!");
+        Log.d(TAG, "============= Intent received!");
 
         Bundle receivedInfo = intent.getExtras();
         if (receivedInfo != null) {
@@ -200,7 +201,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 //            beaconTransmitter.startAdvertising(transmittedBeacon);
 //        }
 
-        return Service.START_NOT_STICKY;
+        return Service.START_STICKY;
     }
 
     @Nullable
@@ -253,9 +254,10 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                             }
 
                             for (final String userID : roomUsers) {
+                                Log.d(TAG, "+++++++++ ROOM USER ID: " + userID);
                                 Firebase smallRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
 
-                                listener = new ValueEventListener() {
+                                smallRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         Log.d(TAG, "========== CHILD: " + dataSnapshot.toString());
@@ -280,6 +282,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                                             hunter = beacon; // update hunter anyway
                                                         }
                                                     }
+
                                                 }
 
                                             } else {
@@ -288,10 +291,13 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                                 if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
                                                     // this beacon device is my hunter
 //                                                    Log.d(TAG, "========= FOUND HUNTER!!");
-                                                    Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
-                                                    sendNotification("A HUNTER IS NEARBY!!");
-                                                    isHunterNearby = true;
-                                                    hunter = beacon; // update hunter anyway
+                                                    if (dataSnapshot.child("name").getValue() != null) {
+                                                        Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                                        sendNotification("A HUNTER IS NEARBY!!");
+                                                        isHunterNearby = true;
+                                                        hunter = beacon; // update hunter anyway
+                                                    }
+
                                                 }
                                             }
 
@@ -327,9 +333,8 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                     public void onCancelled(FirebaseError firebaseError) {
                                         Log.e(TAG, "Error when accessing DB: " + firebaseError);
                                     }
-                                };
+                                });
 
-                                smallRef.addListenerForSingleValueEvent(listener);
                             }
                         }
 
@@ -374,9 +379,16 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
         });
 
-        try {
-            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-        } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
+        Thread serviceThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+                } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
+            }
+        });
+        serviceThread.start();
+
     }
 
     @Override

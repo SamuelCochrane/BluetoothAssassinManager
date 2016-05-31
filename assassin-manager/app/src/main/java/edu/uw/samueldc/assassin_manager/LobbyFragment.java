@@ -286,15 +286,15 @@ public class LobbyFragment extends ListFragment {
             tvKills.setText(mKills[position]);
 
             ImageView ivStatus = (ImageView) convertView.findViewById(R.id.itemIcon);
-            if(mStatus[position].equals(EnterActivity.STATUS_DEAD)) {
-                ivStatus.setImageResource(R.drawable.ic_dead);
-            } else if (mStatus[position].equals("target")) {
-                ivStatus.setImageResource(R.drawable.ic_target);
-            } else {
-                ivStatus.setImageResource(R.drawable.ic_default);
+            if (mStatus[position] != null) {
+                if(mStatus[position].equals(EnterActivity.STATUS_DEAD)) {
+                    ivStatus.setImageResource(R.drawable.ic_dead);
+                } else if (mStatus[position].equals("target")) {
+                    ivStatus.setImageResource(R.drawable.ic_target);
+                } else {
+                    ivStatus.setImageResource(R.drawable.ic_default);
+                }
             }
-
-
 
             return convertView;
         }

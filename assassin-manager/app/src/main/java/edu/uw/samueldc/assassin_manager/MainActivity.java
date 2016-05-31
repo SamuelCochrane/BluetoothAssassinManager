@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -211,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         Bundle userInfo = new Bundle();
         userInfo.putSerializable("userData", userData);
         intent.putExtras(userInfo);
-        startService(intent);
+        this.startService(intent);
 
 
         if (myGoogleApiClient == null) {
@@ -257,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        startService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStart();
+
         if (!isRegistered) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(BeaconApplication.BROADCAST_BEACON);
@@ -302,39 +304,39 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
 
         // stop beacon service as well only if it is not switch mode behavior
-        if (!isSettingsClick) {
-            Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
-            stopService(svc);
-
-            // check if itself is the last user in this room, delete this room if true
-            Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
-
-            roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.getChildrenCount() <= 1) {
-                        // delete the room
-                        Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
-                        roomDeleteRef.removeValue();
-                    } else {
-                        // if the user is not the only one, delete this user in that room
-                        Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
-
-                        roomRef.removeValue();
-                    }
-
-                    // also, remove this user in firebase
-                    Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-
-                    userRef.removeValue();
-                }
-
-                @Override
-                public void onCancelled(FirebaseError firebaseError) {
-                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
-                }
-            });
-        }
+//        if (!isSettingsClick) {
+//            Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
+//            stopService(svc);
+//
+//            // check if itself is the last user in this room, delete this room if true
+//            Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
+//
+//            roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(DataSnapshot dataSnapshot) {
+//                    if (dataSnapshot.getChildrenCount() <= 1) {
+//                        // delete the room
+//                        Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+//                        roomDeleteRef.removeValue();
+//                    } else {
+//                        // if the user is not the only one, delete this user in that room
+//                        Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
+//
+//                        roomRef.removeValue();
+//                    }
+//
+//                    // also, remove this user in firebase
+//                    Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+//
+//                    userRef.removeValue();
+//                }
+//
+//                @Override
+//                public void onCancelled(FirebaseError firebaseError) {
+//                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
+//                }
+//            });
+//        }
 
         super.onDestroy();
     }

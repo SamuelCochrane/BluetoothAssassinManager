@@ -135,18 +135,20 @@ public class MapFragment extends Fragment {
                                 // move the marker
                                 if (getActivity() != null) {
                                     marker.setPosition(location);
-                                    marker.setTitle(dataSnapshot.child("name").getValue().toString());
+                                    if (dataSnapshot.child("name").getValue() != null) {
+                                        marker.setTitle(dataSnapshot.child("name").getValue().toString());
 
-                                    if (dataSnapshot.child("name").getValue().toString().equals(myName)) {
-                                        marker.setTitle("I'm Here");
+                                        if (dataSnapshot.child("name").getValue().toString().equals(myName)) {
+                                            marker.setTitle("I'm Here");
 
-                                    } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
-                                        //    if (marker != null) marker.remove();
-                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_default)));
+                                        } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
+                                            //    if (marker != null) marker.remove();
+                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_default)));
 
-                                    } else {
-                                        //   if (marker != null) marker.remove();
-                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_dead)));
+                                        } else {
+                                            //   if (marker != null) marker.remove();
+                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_dead)));
+                                        }
                                     }
                             }
 
