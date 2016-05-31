@@ -64,56 +64,49 @@ public class EnterActivity extends AppCompatActivity {
                 final String username = etPlayerName.getText().toString();
 
 
-                // Add restrictions for username and room name here, if wanted
-                if(room.length() >= 4 && username.length() >= 3) {
+                boolean roomContainsInvalidToken = room.contains(".") || room.contains("#") ||
+                        room.contains("$") || room.contains("[") || room.contains("]");
+
+                boolean userContainsInvalidToken = username.contains(".") || username.contains("#") ||
+                        username.contains("$") || username.contains("[") || username.contains("]");
+
+                // Restrictions for username and room name
+                if((room.length() >= 4 && username.length() >= 3) &&
+                        (!roomContainsInvalidToken && !userContainsInvalidToken)) {
+
+                    // Input is good, check if it exists, then start pre-game lobby if all is good.
                     checkRoomExistence(username, room);
 
+                } else if(room.length() < 4 || roomContainsInvalidToken) {
+                    // Invalid input for room name
 
-                } else {
-                    if (room.length() < 4) {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(EnterActivity.this);
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(EnterActivity.this);
 
-                        dialog.setCancelable(false);
-                        dialog.setIcon(R.drawable.login_icon);
-                        dialog.setTitle("Room Name Too Short!");
-                        dialog.setMessage("Room Name Should Contain at Least 4 Letters or Digits.");
-                        dialog.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        dialog.show();
-
-                        if (username.length() < 3) {
-                            AlertDialog.Builder dialog2 = new AlertDialog.Builder(EnterActivity.this);
-
-                            dialog2.setCancelable(false);
-                            dialog2.setIcon(R.drawable.login_icon);
-                            dialog2.setTitle("User Name Too Short!");
-                            dialog2.setMessage("User Name Should Contain at Least 3 Letters or Digits.");
-                            dialog2.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                            dialog2.show();
+                    dialog.setCancelable(false);
+                    dialog.setIcon(R.drawable.login_icon);
+                    dialog.setTitle("Invalid Room Name");
+                    dialog.setMessage("Room name should consist of at least 4 characters--letters, digits and spaces only.");
+                    dialog.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
                         }
+                    });
+                    dialog.show();
+                } else if (username.length() < 3 || userContainsInvalidToken) {
+                    //Invalid input for user name
 
-                    }
-                    else {
-                        AlertDialog.Builder dialog2 = new AlertDialog.Builder(EnterActivity.this);
+                    AlertDialog.Builder dialog2 = new AlertDialog.Builder(EnterActivity.this);
 
-                        dialog2.setCancelable(false);
-                        dialog2.setIcon(R.drawable.login_icon);
-                        dialog2.setTitle("User Name Too Short!");
-                        dialog2.setMessage("User Name Should Contain at Least 3 Letters or Digits.");
-                        dialog2.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        dialog2.show();
-                    }
+                    dialog2.setCancelable(false);
+                    dialog2.setIcon(R.drawable.login_icon);
+                    dialog2.setTitle("Invalid User Name");
+                    dialog2.setMessage("User name should consist of at least 3 characters--letters, digits and spaces only.");
+                    dialog2.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog2.show();
 
                 }
 
