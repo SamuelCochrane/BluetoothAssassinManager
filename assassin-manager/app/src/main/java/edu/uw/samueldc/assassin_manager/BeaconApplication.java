@@ -76,10 +76,12 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     // flags to check if hunter or prey is nearby
     private boolean isHunterNearby = false;
     private boolean isTargetNearby = false;
+    private boolean isRecreated = false;
 
     HashMap<String, String> userData = null;
 
     private Firebase fireBaseRef;
+    private Bundle receivedInfo;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -143,6 +145,8 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
         serviceThread.start();
 
+
+
     }
 
     @Override
@@ -152,7 +156,17 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "============= Intent received!");
 
-        Bundle receivedInfo = intent.getExtras();
+        receivedInfo = intent.getExtras();
+        if (!isRecreated) {
+            isRecreated = true;
+            Intent startIntent = new Intent(this.context, MainActivity.class);
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startIntent.putExtras(receivedInfo);
+            startActivity(startIntent);
+
+        }
+
+
         if (receivedInfo != null) {
             userData = (HashMap) receivedInfo.getSerializable("userData");
         }
@@ -380,16 +394,19 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
         });
 
-        Thread serviceThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-                } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
-            }
-        });
-        serviceThread.start();
+//        Thread serviceThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+//                } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
+//            }
+//        });
+//        serviceThread.start();
 
+        try {
+            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+        } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
     }
 
     @Override

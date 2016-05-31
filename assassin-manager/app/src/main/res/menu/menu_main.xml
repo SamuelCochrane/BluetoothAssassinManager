@@ -7,8 +7,4 @@
         android:title="@string/settings_title">
     </item>
 
-    <item android:id="@+id/toggleTheme"
-        app:showAsAction="ifRoom"
-        android:title="@string/daynight"
-         />
 </menu>

@@ -27,6 +27,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -88,30 +89,19 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     LocationManager locationManager;
     private final int PERMISSION_CODE = 1;
 
-    private int themeID = -1;
-    private boolean isSettingsClick = false;
-
     private Intent starterIntent;
 
     private GoogleApiClient myGoogleApiClient;
 
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-
-        savedInstanceState.putInt("theme", themeID );
-
-    }
+//    @Override
+//    public void onSaveInstanceState(Bundle savedInstanceState) {
+//        super.onSaveInstanceState(savedInstanceState);
+//
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // ======= theme stuff
-        if(savedInstanceState != null && savedInstanceState.getInt("theme", -1) != -1) {
 
-            themeID = savedInstanceState.getInt("theme");
-            Log.d(TAG, "========== THEME ID: " + themeID);
-            this.setTheme(themeID);
-        }
 
         super.onCreate(savedInstanceState);
 
@@ -200,18 +190,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // and register for broadcast receiver from beacon service
         receiver = new BeaconReceiver();
         receiver.setOnBeaconReceivedListener(this);
-//        IntentFilter filter = new IntentFilter();
-//        filter.addAction(BeaconApplication.BROADCAST_BEACON);
-//        filter.addAction(BeaconApplication.RANGING_DONE);
-//        registerReceiver(receiver, filter);
-//        isRegistered = true;
 
         // start the beacon service in the backgorund thread
         // and pass userName and roonName to Beacon
         Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
-        Bundle userInfo = new Bundle();
-        userInfo.putSerializable("userData", userData);
-        intent.putExtras(userInfo);
+//        Bundle userInfo = new Bundle();
+//        userInfo.putSerializable("userData", userData);
+        intent.putExtras(starterIntent.getExtras());
         this.startService(intent);
 
 
@@ -267,6 +252,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             isRegistered = true;
         }
         myGoogleApiClient.connect();
+
+
     }
 
     @Override
@@ -458,22 +445,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.miSettings) {
-            isSettingsClick = true;
+//            isSettingsClick = true;
             Log.v(TAG, "Start settings");
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             startActivity(intent);
             return true;
 
-        } else if (id == R.id.toggleTheme) {
-            // change to night mode
-            if (themeID == R.style.AppTheme_Night) {
-                themeID = R.style.AppTheme;
-            } else {
-                themeID = R.style.AppTheme_Night;
-            }
-            isSettingsClick = true;
-            this.recreate();
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
