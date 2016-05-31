@@ -118,7 +118,7 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                         roomUsers.add(child.getKey());
                     }
 
-                    for (final String userID : roomUsers) {
+                    for (String userID : roomUsers) {
                         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
                         final HashMap<String, String> data = new HashMap<String, String>();
 
@@ -130,7 +130,9 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                                     if (dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(targetID)) {
                                         Log.d(TAG, "========= FOUND TARGET!!!");
                                         Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+
                                         targetName = dataSnapshot.child("name").getValue().toString();
+
                                         set(targetName, null);
                                     }
                                 }
@@ -208,12 +210,95 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
 
     private String targetsTarget;
     private int ourScore;
-    private Firebase myFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
+//    private Firebase myFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
     //sets a player to dead,
     //called by killButton
     public void killTarget() {
+        Log.i(TAG, "Killing");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom + "/users");
+        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            public void onDataChange(DataSnapshot dataSnapshot) {
+//                            dataSnapshot.getValue();
+                if (dataSnapshot.exists()) {
+                    ArrayList<String> roomUsers = new ArrayList<String>();
 
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        roomUsers.add(child.getKey());
+                    }
+
+                    for (final String userID : roomUsers) {
+                        final Firebase curFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                        final HashMap<String, String> data = new HashMap<String, String>();
+
+                        curFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    data.clear();
+                                    if (dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(targetID)) {
+                                        Log.d(TAG, "========= FOUND TARGET!!!");
+                                        Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                        targetName = dataSnapshot.child("name").getValue().toString();
+
+                                        targetsTarget = dataSnapshot.child("target").getValue().toString();
+
+
+
+                                        Log.i(TAG, "new target:" + targetsTarget);
+                                        Log.i(TAG, playerName + " just killed " + targetName + "!");
+                                        //
+                                        //
+                                        final Firebase meFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
+                                        meFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                ourScore = Integer.parseInt(dataSnapshot.child("kills").getValue().toString());
+                                            }
+
+                                            @Override
+                                            public void onCancelled(FirebaseError firebaseError) {
+                                                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                                            }
+                                        });
+                                        Log.i(TAG, "~~~~~~~~~~~~~~~~~~~~" + curFireBaseRef.child("name") + "<------------ this guy is DEAD");
+                                        curFireBaseRef.child("status").setValue("dead"); // kill them
+                                        meFireBaseRef.child("kills").setValue(ourScore + 1);
+                                        meFireBaseRef.child("target").setValue(targetsTarget);
+//                                        targetID = targetsTarget;
+
+
+                                    }
+
+                                    //set(targetName, null);
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                            }
+                        });
+
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, "Error when accessing DB: " + firebaseError);
+            }
+        });
+
+        }
+
+
+
+
+/*
+
+        Log.i(TAG, "Killing");
         Firebase targetFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
+        Log.i(TAG, "setting listener for: " + targetID);
         targetFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -250,6 +335,7 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
             }
 
         });
+*/
 
 /*        FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -258,7 +344,6 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
         transaction.replace(R.id.targetFragment, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();*/
-    }
 
 
     @Override
