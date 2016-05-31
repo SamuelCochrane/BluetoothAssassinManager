@@ -139,7 +139,7 @@ public class MapFragment extends Fragment {
                                         marker.setTitle(dataSnapshot.child("name").getValue().toString());
 
                                         if (dataSnapshot.child("name").getValue().toString().equals(myName)) {
-                                            marker.setTitle("I'm Here");
+                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_me)));
 
                                         } else if (dataSnapshot.child("status").getValue().toString().equalsIgnoreCase(EnterActivity.STATUS_ALIVE)) {
                                             //    if (marker != null) marker.remove();
