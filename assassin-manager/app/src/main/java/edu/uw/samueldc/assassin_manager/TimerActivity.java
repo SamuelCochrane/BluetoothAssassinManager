@@ -31,8 +31,10 @@ public class TimerActivity extends AppCompatActivity {
     static Timer timer;
     static TimerTask task;
 
+    private boolean buttonPressed;
 
     public void onClickEnter(View view) {
+        buttonPressed = true;
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
 
         Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
@@ -64,6 +66,7 @@ public class TimerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        buttonPressed = false;
         setContentView(R.layout.activity_timer);
 
         userData = new HashMap<String, HashMap<String, String>>();
@@ -84,6 +87,39 @@ public class TimerActivity extends AppCompatActivity {
         timer = new Timer();
         task = new TimerTask(bundleFromLastActivity);
         timer.schedule(task, 0, 1000);
+
+        // Listener for start time change, will start game for everyone when one person clicks enter
+
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+        fireBaseRef.child("timer").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if(!buttonPressed) {
+                    Log.v(TAG, "Start Time thingy: " + dataSnapshot.getValue());
+                    if (Long.parseLong(dataSnapshot.getValue().toString()) == 0) {
+                        Intent intent = new Intent(TimerActivity.this, MainActivity.class);
+//                        Bundle mainBundle = new Bundle();
+//                        mainBundle.putString("userID", userID);
+//                        mainBundle.putString("room", room);
+//                        mainBundle.putSerializable("userData", userData);
+                        intent.putExtras(bundleFromLastActivity);
+
+                        fireBaseRef.removeEventListener(listener);
+
+//                    timer = null;
+
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
 
 //        Button start = (Button) findViewById(R.id.btnStart);
 //
@@ -285,7 +321,7 @@ public class TimerActivity extends AppCompatActivity {
                     mainBundle.putString("userID", userID);
                     mainBundle.putString("room", room);
                     mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
-                    intent.putExtras(bundle);
+                    intent.putExtras(mainBundle);
 
                     fireBaseRef.removeEventListener(listener);
 
