@@ -4,34 +4,39 @@
     android:layout_height="match_parent"
     tools:context="edu.uw.samueldc.assassin_manager.TargetFragment"
     android:id="@+id/targetFragment">
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_gravity="center">
 
 
-    <TextView
-        android:id="@+id/targetSpottedText"
-        style="@style/targetText"
-        android:text="@string/target_spotted_text_not_in_range" />
-    <TextView
-        android:id="@+id/targetSpottedNameText"
-        style="@style/targetText"
-        android:text="@string/target_name" />
-    <TextView
-        android:id="@+id/targetSpottedDistance"
-        style="@style/targetText"
-        android:text="@string/target_distance" />
+            <TextView
+                android:id="@+id/targetSpottedText"
+                style="@style/targetText"
+                android:text="@string/target_spotted_text_not_in_range" />
+            <TextView
+                android:id="@+id/targetSpottedNameText"
+                style="@style/targetText"
+                android:text="@string/target_name" />
+            <TextView
+                android:id="@+id/targetSpottedDistance"
+                style="@style/targetText"
+                android:text="@string/target_distance" />
 
-    <Button
-        android:id="@+id/killButton"
-        style="@style/targetText"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:text="@string/kill_button"/>
+            <Button
+                android:id="@+id/killButton"
+                style="@style/targetText"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:text="@string/kill_button"/>
 
 
 
-    </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
 </FrameLayout>
