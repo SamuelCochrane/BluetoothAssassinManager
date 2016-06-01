@@ -184,24 +184,24 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.child("GameWinner").exists() &&
                         dataSnapshot.child("GameWinner").getValue().toString().length() > 0) {
-                    String winner = dataSnapshot.child("GameWinner").getValue().toString();
-
-                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
-
-                    dialog.setCancelable(false);
-                    dialog.setIcon(R.drawable.login_icon);
-                    dialog.setTitle("Game Over!");
-                    dialog.setMessage(winner + " has won the game!");
-                    dialog.setPositiveButton("Return to menu", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                            Intent intent = new Intent(MainActivity.this, EnterActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
-                        }
-                    });
-                    dialog.show();
+//                    String winner = dataSnapshot.child("GameWinner").getValue().toString();
+//
+//                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+//
+//                    dialog.setCancelable(false);
+//                    dialog.setIcon(R.drawable.login_icon);
+//                    dialog.setTitle("Game Over!");
+//                    dialog.setMessage(winner + " has won the game!");
+//                    dialog.setPositiveButton("Return to menu", new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            dialog.dismiss();
+//                            Intent intent = new Intent(MainActivity.this, EnterActivity.class);
+//                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            startActivity(intent);
+//                            finish();
+//                        }
+//                    });
+//                    dialog.show();
 
                 }
             }
@@ -379,10 +379,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             // a map of hunter and target
             Bundle bundle = intent.getExtras();
 //            String strings = intent.getExtras().getString("beaconStr");
-            Log.d(TAG, "+++++++++ YOU GET BUNDLE: " + bundle);
+//            Log.d(TAG, "+++++++++ YOU GET BUNDLE: " + bundle);
 //            beacons = (HashMap<String, Beacon>) bundle.getSerializable("beaconMap");
 
             Beacon target = bundle.getParcelable("target");
+            if (target != null) {
+                Log.d(TAG, "+++++++++++ YOU GET TARGET: " + target.toString());
+            } else {
+                Log.d(TAG, "+++++++++ YOU GET A NULL TARGET");
+            }
+
+
 
             TargetFragment targetFrag = (TargetFragment) pageAdapter.getRegisteredFragment(TARGET_POSITION);
             if (targetFrag != null) {
