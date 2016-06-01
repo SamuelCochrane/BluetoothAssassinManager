@@ -15,5 +15,5 @@ Utilizing Bluetooth, Beacons and GPS services, Assassin Game makes the user see 
  
  
 ## Credits
-Group 4: Samuel Cochrane, Owen Flannigan, Zhizhen Lin, Jiayi Wang
-[Android Beacon Library Reference Master](https://altbeacon.github.io/android-beacon-library/download.html)
+* Group 4: Samuel Cochrane, Owen Flannigan, Zhizhen Lin, Jiayi Wang
+* Library: [Android Beacon Library Reference Master](https://altbeacon.github.io/android-beacon-library/download.html)
