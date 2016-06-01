@@ -4,8 +4,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +20,6 @@ import org.altbeacon.beacon.Beacon;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
 
 
@@ -254,7 +251,9 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                                             public void onDataChange(DataSnapshot dataSnapshot) {
                                                 Log.i(TAG, "UniqueID: " + dataSnapshot.child("uniqueID").getValue().toString() + "    new target:" + targetsTarget);
                                                 if(dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(targetsTarget)) {
-                                                    endGame();
+                                                    Log.i(TAG, "---------GAME IS OVER!-----------");
+                                                    fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom);
+                                                    fireBaseRef.child("GameWinner").setValue(playerName);
                                                 }
                                                 ourScore = Integer.parseInt(dataSnapshot.child("kills").getValue().toString());
                                             }
@@ -295,12 +294,6 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
 
     }
 
-
-    private void endGame() {
-        Log.i(TAG, "---------GAME IS OVER!-----------");
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom);
-        fireBaseRef.child("GameStatus").setValue("Over");
-    }
 
 /*final Firebase meFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
                                         meFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {

@@ -176,6 +176,42 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         });
 
+        //Listener for endgame
+        Firebase endGameRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+
+        endGameRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.child("GameWinner").exists() &&
+                        dataSnapshot.child("GameWinner").getValue().toString().length() > 0) {
+                    String winner = dataSnapshot.child("GameWinner").getValue().toString();
+
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+
+                    dialog.setCancelable(false);
+                    dialog.setIcon(R.drawable.login_icon);
+                    dialog.setTitle("Game Over!");
+                    dialog.setMessage(winner + " has won the game!");
+                    dialog.setPositiveButton("Return to menu", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            Intent intent = new Intent(MainActivity.this, EnterActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        }
+                    });
+                    dialog.show();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
 
         // ============= beacon stuff
         // and register for broadcast receiver from beacon service
@@ -272,10 +308,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         dialog.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-                finish();
                 Intent intent = new Intent(MainActivity.this, EnterActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
+                finish();
             }
         });
         dialog.show();
