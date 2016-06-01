@@ -76,10 +76,12 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     // flags to check if hunter or prey is nearby
     private boolean isHunterNearby = false;
     private boolean isTargetNearby = false;
+    private boolean isRecreated = false;
 
     HashMap<String, String> userData = null;
 
     private Firebase fireBaseRef;
+    private Bundle receivedInfo;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -96,6 +98,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     public void onCreate() {
         super.onCreate();
 
+        this.context = this;
         isRunning = true;
 
         Thread serviceThread = new Thread(new Runnable() {
@@ -141,7 +144,9 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
         });
 
         serviceThread.start();
-        this.context = this;
+
+
+
     }
 
     @Override
@@ -149,9 +154,19 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
     // when received intent service start command
     // when clip multiple services, it will queue all services
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(TAG, "============= Intent received!");
+        Log.d(TAG, "============= Intent received!");
 
-        Bundle receivedInfo = intent.getExtras();
+        receivedInfo = intent.getExtras();
+        if (!isRecreated) {
+            isRecreated = true;
+            Intent startIntent = new Intent(this.context, MainActivity.class);
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startIntent.putExtras(receivedInfo);
+            startActivity(startIntent);
+
+        }
+
+
         if (receivedInfo != null) {
             userData = (HashMap) receivedInfo.getSerializable("userData");
         }
@@ -200,7 +215,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 //            beaconTransmitter.startAdvertising(transmittedBeacon);
 //        }
 
-        return Service.START_NOT_STICKY;
+        return Service.START_STICKY;
     }
 
     @Nullable
@@ -252,15 +267,16 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                 roomUsers.add(child.getKey());
                             }
 
-                            for (final String userID : roomUsers) {
-                                Firebase smallRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+                            for (final Beacon beacon : beaconList) {
+                                final String temUserID = beacon.getId2().toString();
+                                for (final String userID : roomUsers) {
+                                    Log.d(TAG, "+++++++++ ROOM USER ID: " + userID);
+                                    Firebase smallRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
 
-                                listener = new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        Log.d(TAG, "========== CHILD: " + dataSnapshot.toString());
-
-                                        for (Beacon beacon : beaconList) {
+                                    smallRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            Log.d(TAG, "========== CHILD: " + dataSnapshot.toString());
 
                                             // ======== first check if this beacon is my hunter
                                             if (hunterUniqueID == null) {
@@ -272,7 +288,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                                         Log.d(TAG, "======= THIS IS MY HUNTER: " + dataSnapshot.child("name"));
                                                         // if a user's target is me, this user is my hunter
                                                         hunterUniqueID = dataSnapshot.child("uniqueID").getValue().toString();
-                                                        if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                        if (hunterUniqueID.equalsIgnoreCase(temUserID)) {
                                                             // this beacon device is my hunter
                                                             Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
                                                             sendNotification("A HUNTER IS NEARBY!!");
@@ -280,18 +296,22 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                                             hunter = beacon; // update hunter anyway
                                                         }
                                                     }
+
                                                 }
 
                                             } else {
                                                 // already have hunter's unique id, compare to beacon directly
 //                                                Log.d(TAG, "============ HUNTER already FOUND");
-                                                if (hunterUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                if (hunterUniqueID.equalsIgnoreCase(temUserID)) {
                                                     // this beacon device is my hunter
 //                                                    Log.d(TAG, "========= FOUND HUNTER!!");
-                                                    Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
-                                                    sendNotification("A HUNTER IS NEARBY!!");
-                                                    isHunterNearby = true;
-                                                    hunter = beacon; // update hunter anyway
+                                                    if (dataSnapshot.child("name").getValue() != null) {
+                                                        Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
+                                                        sendNotification("A HUNTER IS NEARBY!!");
+                                                        isHunterNearby = true;
+                                                        hunter = beacon; // update hunter anyway
+                                                    }
+
                                                 }
                                             }
 
@@ -299,7 +319,7 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
                                             if (targetUniqueID != null) {
                                                 Log.d(TAG, "============ TARGET already HAVE: " + targetUniqueID);
                                                 Log.d(TAG, "++++++++++ BEACON id2: " + beacon.getId2());
-                                                if (targetUniqueID.equalsIgnoreCase(beacon.getId2().toString())) {
+                                                if (targetUniqueID.equalsIgnoreCase(temUserID)) {
 
                                                     Log.d(TAG, "========= " + dataSnapshot.child("name").getValue().toString());
                                                     prey = beacon;
@@ -321,16 +341,16 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
 
                                         }
 
-                                    }
+                                        @Override
+                                        public void onCancelled(FirebaseError firebaseError) {
+                                            Log.e(TAG, "Error when accessing DB: " + firebaseError);
+                                        }
+                                    });
 
-                                    @Override
-                                    public void onCancelled(FirebaseError firebaseError) {
-                                        Log.e(TAG, "Error when accessing DB: " + firebaseError);
-                                    }
-                                };
-
-                                smallRef.addListenerForSingleValueEvent(listener);
+                                }
                             }
+
+
                         }
 
                         @Override
@@ -373,6 +393,16 @@ public class BeaconApplication extends Service implements BootstrapNotifier, Bea
             }
 
         });
+
+//        Thread serviceThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+//                } catch (RemoteException e) {  Log.d(TAG, "++++++++ BEACON ERROR: " + e); }
+//            }
+//        });
+//        serviceThread.start();
 
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));

@@ -8,6 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+<<<<<<< HEAD
+=======
+import android.content.res.Configuration;
+import android.location.Criteria;
+>>>>>>> f642b46636a88cd96bfe2152f359ca7471d21940
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -24,6 +29,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -80,30 +86,19 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     LocationManager locationManager;
     private final int PERMISSION_CODE = 1;
 
-    private int themeID = -1;
-    private boolean isSettingsClick = false;
-
     private Intent starterIntent;
 
     private GoogleApiClient myGoogleApiClient;
 
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-
-        savedInstanceState.putInt("theme", themeID );
-
-    }
+//    @Override
+//    public void onSaveInstanceState(Bundle savedInstanceState) {
+//        super.onSaveInstanceState(savedInstanceState);
+//
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // ======= theme stuff
-        if(savedInstanceState != null && savedInstanceState.getInt("theme", -1) != -1) {
 
-            themeID = savedInstanceState.getInt("theme");
-            Log.d(TAG, "========== THEME ID: " + themeID);
-            this.setTheme(themeID);
-        }
 
         super.onCreate(savedInstanceState);
 
@@ -192,19 +187,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // and register for broadcast receiver from beacon service
         receiver = new BeaconReceiver();
         receiver.setOnBeaconReceivedListener(this);
-//        IntentFilter filter = new IntentFilter();
-//        filter.addAction(BeaconApplication.BROADCAST_BEACON);
-//        filter.addAction(BeaconApplication.RANGING_DONE);
-//        registerReceiver(receiver, filter);
-//        isRegistered = true;
 
         // start the beacon service in the backgorund thread
         // and pass userName and roonName to Beacon
         Intent intent = new Intent(MainActivity.this, BeaconApplication.class);
-        Bundle userInfo = new Bundle();
-        userInfo.putSerializable("userData", userData);
-        intent.putExtras(userInfo);
-        startService(intent);
+//        Bundle userInfo = new Bundle();
+//        userInfo.putSerializable("userData", userData);
+        intent.putExtras(starterIntent.getExtras());
+        this.startService(intent);
 
 
         if (myGoogleApiClient == null) {
@@ -250,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 //        startService(new Intent(MainActivity.this, BeaconApplication.class));
 
         super.onStart();
+
         if (!isRegistered) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(BeaconApplication.BROADCAST_BEACON);
@@ -258,6 +249,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             isRegistered = true;
         }
         myGoogleApiClient.connect();
+
+
     }
 
     @Override
@@ -308,39 +301,39 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
 
         // stop beacon service as well only if it is not switch mode behavior
-        if (!isSettingsClick) {
-            Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
-            stopService(svc);
-
-            // check if itself is the last user in this room, delete this room if true
-            Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
-
-            roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.getChildrenCount() <= 1) {
-                        // delete the room
-                        Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
-                        roomDeleteRef.removeValue();
-                    } else {
-                        // if the user is not the only one, delete this user in that room
-                        Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
-
-                        roomRef.removeValue();
-                    }
-
-                    // also, remove this user in firebase
-                    Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
-
-                    userRef.removeValue();
-                }
-
-                @Override
-                public void onCancelled(FirebaseError firebaseError) {
-                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
-                }
-            });
-        }
+//        if (!isSettingsClick) {
+//            Intent svc=new Intent(MainActivity.this, BeaconApplication.class);
+//            stopService(svc);
+//
+//            // check if itself is the last user in this room, delete this room if true
+//            Firebase roomCntRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
+//
+//            roomCntRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(DataSnapshot dataSnapshot) {
+//                    if (dataSnapshot.getChildrenCount() <= 1) {
+//                        // delete the room
+//                        Firebase roomDeleteRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+//                        roomDeleteRef.removeValue();
+//                    } else {
+//                        // if the user is not the only one, delete this user in that room
+//                        Firebase roomRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users" + userID);
+//
+//                        roomRef.removeValue();
+//                    }
+//
+//                    // also, remove this user in firebase
+//                    Firebase userRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);
+//
+//                    userRef.removeValue();
+//                }
+//
+//                @Override
+//                public void onCancelled(FirebaseError firebaseError) {
+//                    Log.e(TAG, "Error when accessing DB: " + firebaseError);
+//                }
+//            });
+//        }
 
         super.onDestroy();
     }
@@ -462,22 +455,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.miSettings) {
-            isSettingsClick = true;
+//            isSettingsClick = true;
             Log.v(TAG, "Start settings");
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             startActivity(intent);
             return true;
 
-        } else if (id == R.id.toggleTheme) {
-            // change to night mode
-            if (themeID == R.style.AppTheme_Night) {
-                themeID = R.style.AppTheme;
-            } else {
-                themeID = R.style.AppTheme_Night;
-            }
-            isSettingsClick = true;
-            this.recreate();
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
