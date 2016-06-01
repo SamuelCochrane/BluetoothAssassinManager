@@ -8,11 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-<<<<<<< HEAD
-=======
-import android.content.res.Configuration;
-import android.location.Criteria;
->>>>>>> f642b46636a88cd96bfe2152f359ca7471d21940
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -29,7 +24,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -268,6 +262,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     // create a new enter activity and clear all back stack!
     @Override
     public void onBackPressed() {
+
+
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
 

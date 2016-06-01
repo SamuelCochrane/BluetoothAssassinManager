@@ -1,10 +1,12 @@
 package edu.uw.samueldc.assassin_manager;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
@@ -31,36 +33,42 @@ public class TimerActivity extends AppCompatActivity {
     static Timer timer;
     static TimerTask task;
 
+    private Button startBtn;
+
     private boolean buttonPressed;
 
     public void onClickEnter(View view) {
-        buttonPressed = true;
-        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
+        if(playerCount > 3) {
+            startBtn.setEnabled(false);
+            startBtn.setBackgroundColor(Color.GRAY);
 
-        Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
+            buttonPressed = true;
+            fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
 
-        fireBaseRef.child("timer").setValue("0");
+            Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
 
-        startTime = 0;
+            fireBaseRef.child("timer").setValue("0");
 
-        // Make sure you don't have some async issue here
-        Intent intent = new Intent(TimerActivity.this, MainActivity.class);
-        Bundle mainBundle = new Bundle();
-        mainBundle.putString("userID", userID);
-        mainBundle.putString("room", room);
-        mainBundle.putSerializable("userData", bundleFromLastActivity.getSerializable("userData"));
-        intent.putExtras(bundleFromLastActivity);
+            startTime = 0;
 
-        fireBaseRef.removeEventListener(listener);
+            // Make sure you don't have some async issue here
+            Intent intent = new Intent(TimerActivity.this, MainActivity.class);
+            Bundle mainBundle = new Bundle();
+            mainBundle.putString("userID", userID);
+            mainBundle.putString("room", room);
+            mainBundle.putSerializable("userData", bundleFromLastActivity.getSerializable("userData"));
+            intent.putExtras(bundleFromLastActivity);
 
-
-
-        task.cancel();
-        timer.cancel();
-        timer = null;
+            fireBaseRef.removeEventListener(listener);
 
 
-        startActivity(intent);
+            task.cancel();
+            timer.cancel();
+            timer = null;
+
+
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -69,7 +77,14 @@ public class TimerActivity extends AppCompatActivity {
         buttonPressed = false;
         setContentView(R.layout.activity_timer);
 
+        startBtn = (Button) findViewById(R.id.btnStart);
+        startBtn.setEnabled(false);
+        startBtn.setBackgroundColor(Color.GRAY);
+
+
+
         userData = new HashMap<String, HashMap<String, String>>();
+        playerCount = 0;
 
         bundleFromLastActivity = getIntent().getExtras();
         if(bundleFromLastActivity != null) {
@@ -121,40 +136,6 @@ public class TimerActivity extends AppCompatActivity {
             }
         });
 
-//        Button start = (Button) findViewById(R.id.btnStart);
-//
-//        start.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room);
-//
-//                Log.v(TAG, "Timer: " + fireBaseRef.child("timer").getKey());
-//
-//                fireBaseRef.child("timer").setValue("0");
-//
-//                startTime = 0;
-//
-//                // Make sure you don't have some async issue here
-//                Intent intent = new Intent(TimerActivity.this, MainActivity.class);
-//                Bundle mainBundle = new Bundle();
-//                mainBundle.putString("userID", userID);
-//                mainBundle.putString("room", room);
-//                mainBundle.putSerializable("userData", bundle.getSerializable("userData"));
-//                intent.putExtras(bundle);
-//
-//                fireBaseRef.removeEventListener(listener);
-//
-//
-//
-//                task.cancel();
-//                timer.cancel();
-//                timer = null;
-//
-//
-//                startActivity(intent);
-//
-//            }
-//        });
     }
 
     @Override
@@ -216,6 +197,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     private ValueEventListener listener;
+    private int playerCount;
 
     // Updates userData variable to hold info for all current users
     public void adjustUsers() {
@@ -234,6 +216,14 @@ public class TimerActivity extends AppCompatActivity {
                 }
 
                 Log.v(TAG, "Users in room: " + roomUsers);
+                TextView playerCounter = (TextView) findViewById(R.id.tvPlayerCount);
+                playerCounter.setText("Players in lobby: " + roomUsers.size());
+                playerCount = roomUsers.size();
+
+                if(playerCount >= 3) {
+                    startBtn.setEnabled(true);
+                    startBtn.setBackgroundColor(Color.rgb(58, 152, 50));
+                }
 
                 for (final String userID : roomUsers) {
                     fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + userID);

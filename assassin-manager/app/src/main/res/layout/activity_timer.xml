@@ -34,6 +34,15 @@
     </RelativeLayout>
 
     <TextView
+        android:id="@+id/tvPlayerCount"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Players in lobby: 1"/>
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="18sp"
