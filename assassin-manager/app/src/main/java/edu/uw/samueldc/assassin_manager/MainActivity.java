@@ -263,8 +263,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     public void onBackPressed() {
 
-
-
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
 
         dialog.setCancelable(false);
