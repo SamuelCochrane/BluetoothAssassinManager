@@ -204,7 +204,7 @@ public class TimerActivity extends AppCompatActivity {
 
         fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + room + "/users");
 
-        fireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        fireBaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // New User is added, set last users target to current target
