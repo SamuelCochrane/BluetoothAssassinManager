@@ -38,7 +38,7 @@ public class TimerActivity extends AppCompatActivity {
     private boolean buttonPressed;
 
     public void onClickEnter(View view) {
-        if(playerCount > 3) {
+        if(playerCount >= 2) {
             startBtn.setEnabled(false);
             startBtn.setBackgroundColor(Color.GRAY);
 
@@ -80,7 +80,6 @@ public class TimerActivity extends AppCompatActivity {
         startBtn = (Button) findViewById(R.id.btnStart);
         startBtn.setEnabled(false);
         startBtn.setBackgroundColor(Color.GRAY);
-
 
 
         userData = new HashMap<String, HashMap<String, String>>();
@@ -220,9 +219,10 @@ public class TimerActivity extends AppCompatActivity {
                 playerCounter.setText("Players in lobby: " + roomUsers.size());
                 playerCount = roomUsers.size();
 
-                if(playerCount >= 3) {
+                if(playerCount >= 2) {
                     startBtn.setEnabled(true);
                     startBtn.setBackgroundColor(Color.rgb(58, 152, 50));
+
                 }
 
                 for (final String userID : roomUsers) {
