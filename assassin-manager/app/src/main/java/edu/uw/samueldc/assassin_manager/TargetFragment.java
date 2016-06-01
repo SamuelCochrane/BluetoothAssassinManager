@@ -252,6 +252,10 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
                                         meFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
+                                                Log.i(TAG, "UniqueID: " + dataSnapshot.child("uniqueID").getValue().toString() + "    new target:" + targetsTarget);
+                                                if(dataSnapshot.child("uniqueID").getValue().toString().equalsIgnoreCase(targetsTarget)) {
+                                                    endGame();
+                                                }
                                                 ourScore = Integer.parseInt(dataSnapshot.child("kills").getValue().toString());
                                             }
 
@@ -289,12 +293,21 @@ public class TargetFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        }
+    }
 
 
+    private void endGame() {
+        Log.i(TAG, "---------GAME IS OVER!-----------");
+        fireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/rooms/" + playerRoom);
+        fireBaseRef.child("GameStatus").setValue("Over");
+    }
 
-
-/*
+/*final Firebase meFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + playerID);
+                                        meFireBaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                ourScore = Integer.parseInt(dataSnapshot.child("kills").getValue().toString());
+                                            }
 
         Log.i(TAG, "Killing");
         Firebase targetFireBaseRef = new Firebase("https://infoassassinmanager.firebaseio.com/users/" + targetID);
